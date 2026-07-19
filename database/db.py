@@ -1,0 +1,128 @@
+"""DB 落地層:所有寫入走這裡。
+
+紀律(對齊 preregistration / 測試帳本精神):
+- 判斷落地即定案:record_opinion / finalize 遇到既有紀錄一律報錯,不提供覆寫歷史的介面。
+- 事後結果(fill_outcomes)只回填空欄位,不觸碰已填值。
+"""
+import datetime
+import os
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from database.schema import Base, MarketData, PersonaDebate, DailyBiasResult
+from engine.aggregate import aggregate, disagreement, VALID_DIRECTIONS
+
+_DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'debate_system.db')
+
+
+def get_session(db_url=None):
+    engine = create_engine(db_url or f"sqlite:///{_DB_FILE}")
+    Base.metadata.create_all(engine)
+    return sessionmaker(bind=engine)()
+
+
+def _now_iso():
+    return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+def upsert_market(session, data, summary):
+    """行情快照可重抓更新(它不是判斷,不受落地不改約束)。"""
+    row = session.query(MarketData).filter_by(date=data['date'], asset=data['asset']).one_or_none()
+    if row is None:
+        row = MarketData(date=data['date'], asset=data['asset'])
+        session.add(row)
+    row.open_price = data.get('open')
+    row.high_price = data.get('high')
+    row.low_price = data.get('low')
+    row.close_price = data.get('close')
+    row.volume = data.get('volume')
+    row.funding_rate = data.get('funding_rate')
+    row.open_interest = data.get('open_interest')
+    row.context_summary = summary
+    session.commit()
+    return row
+
+
+def record_opinion(session, *, date, asset, persona, round_, direction, confidence,
+                   reasoning, falsifier=None, model_id=None):
+    if direction not in VALID_DIRECTIONS:
+        raise ValueError(f"非法方向: {direction}")
+    confidence = int(confidence)
+    if not (0 <= confidence <= 100):
+        raise ValueError(f"confidence 超出 0-100: {confidence}")
+    if round_ not in (1, 2):
+        raise ValueError("round 只能是 1 或 2(協議固定兩輪)")
+    exists = session.query(PersonaDebate).filter_by(
+        date=date, asset=asset, persona_name=persona, round=round_).one_or_none()
+    if exists is not None:
+        raise ValueError(f"{date} {asset} {persona} R{round_} 已落地,不可覆寫")
+    row = PersonaDebate(date=date, asset=asset, persona_name=persona, round=round_,
+                        direction=direction, confidence=confidence, reasoning=reasoning,
+                        falsifier=falsifier, model_id=model_id, created_at=_now_iso())
+    session.add(row)
+    session.commit()
+    return row
+
+
+def finalize(session, *, date, asset, protocol_version, summary_reasoning=None):
+    """R1 旁路聚合 + 末輪最終聚合 + 分歧度,寫入 daily_bias_results。"""
+    if session.query(DailyBiasResult).filter_by(date=date, asset=asset).one_or_none():
+        raise ValueError(f"{date} {asset} 已 finalize,不可覆寫")
+    rows = session.query(PersonaDebate).filter_by(date=date, asset=asset).all()
+    r1 = [r for r in rows if r.round == 1]
+    r2 = [r for r in rows if r.round == 2]
+    if not r1:
+        raise ValueError(f"{date} {asset} 沒有任何 R1 紀錄")
+
+    def ops(rs):
+        return [{"direction": r.direction, "confidence": r.confidence} for r in rs]
+
+    r1_dir, r1_conf = aggregate(ops(r1))
+    final_rows = r2 if r2 else r1  # 單人格或未跑 R2 → 最終 = R1
+    cons_dir, cons_conf = aggregate(ops(final_rows))
+    ratio, std = disagreement(ops(final_rows))
+
+    market = session.query(MarketData).filter_by(date=date, asset=asset).one_or_none()
+    result = DailyBiasResult(
+        date=date, asset=asset,
+        r1_direction=r1_dir, r1_confidence=r1_conf,
+        consensus_direction=cons_dir, confidence_score=cons_conf,
+        n_personas=len({r.persona_name for r in final_rows}),
+        disagreement_ratio=ratio, confidence_std=std,
+        protocol_version=protocol_version,
+        summary_reasoning=summary_reasoning,
+        price_at_bias=market.close_price if market else None,
+    )
+    session.add(result)
+    session.commit()
+    return result
+
+
+def fill_outcomes(session, fetch_close_fn, today=None):
+    """回填事後價格。只填「該日 K 線已收」且目前為空的欄位。
+
+    fetch_close_fn(asset, date_str) -> float | None
+    地平線為日曆日(幣圈全年交易),定義見 preregistration。
+    """
+    today = today or datetime.datetime.now(datetime.timezone.utc).date()
+    horizons = {'price_after_1d': 1, 'price_after_5d': 5, 'price_after_20d': 20}
+    filled = []
+    for row in session.query(DailyBiasResult).all():
+        base = datetime.date.fromisoformat(row.date)
+        touched = False
+        for col, days in horizons.items():
+            if getattr(row, col) is not None:
+                continue
+            target = base + datetime.timedelta(days=days)
+            if target >= today:  # 該日 K 線尚未收
+                continue
+            price = fetch_close_fn(row.asset, target.isoformat())
+            if price is not None:
+                setattr(row, col, price)
+                touched = True
+        if touched:
+            row.outcomes_filled_at = _now_iso()
+            filled.append((row.date, row.asset))
+    session.commit()
+    return filled
