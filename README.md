@@ -54,7 +54,7 @@ Phase 0 篩選交易員 → Phase 1 資料蒐集 → Phase 2 人格蒸餾
 
 ### 2.2 蒸餾經驗與建議（給後續人格）
 
-- **語料量是門檻**：ICT 的品質來自 537 支影片的深度。TJR、Mark Douglas、EmperorBTC、GCR 目前只有模板版（未真正蒸餾），擴展前先確認有無同等級語料來源（YouTube 逐字稿優先）。
+- **語料量是門檻**：ICT 的品質來自 537 支影片的深度。**TJR 已於 2026-07-19 完成真正蒸餾（765 支逐字稿，語料 2022-09~2026-07）**；Mark Douglas、EmperorBTC、GCR 目前仍只有模板版（未真正蒸餾），擴展前先確認有無同等級語料來源（YouTube 逐字稿優先）。
 - **蒸餾品質要先驗證再上線**：比照 ICT 的做法——聊天測語氣、真實圖表測框架，通過才算蒸餾完成。WBS 2.4 的「歷史情境重放一致性 ≥60%」是更嚴格的正式驗收，有語料時間戳的人格可以做。
 - **語料截止日要記錄**：這直接決定回測窗口能不能往回開（見 4.2 的洩漏風險）。ICT 語料涵蓋至 2026 年中。
 
@@ -140,6 +140,7 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 
 - [x] 女媧 skill 安裝（專案層級 `.claude/skills/huashu-nuwa`）
 - [x] **ICT 人格完整蒸餾**（全 Phase 跑完），產出 `.claude/skills/ict-perspective/SKILL.md`，聊天+真實圖表測試通過
+- [x] **TJR 人格完整蒸餾（2026-07-19）**：765 支 YouTube 逐字稿（語料 2022-09~2026-07）走完女媧全流程（16 批平行抽取→7 維度合併→三重驗證→組裝），產出 `.claude/skills/tjr-perspective/SKILL.md`，3 子 agent 驗證通過（已知立場／辯論 JSON／邊緣推斷，全程守語言紅線）。研究過程完整留存於 `references/research/`
 - [x] Phase 4 回測規劃文件完成，並已對齊 quant skill v13（§7 增補）
 - [x] 辯論協議設計定案（本 README 第 3 節：兩輪固定、裁判職責邊界、旁路設計）
 - [x] **C 架構實作完成（2026-07-19）**：
@@ -165,7 +166,7 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 
 ### 待評估（多人格上線後）
 
-- TJR / Mark Douglas / EmperorBTC / GCR 的真正蒸餾（先確認語料來源）→ 屆時 R2 結構化反駁流程自動生效（協議與 DB 已支援）
+- **TJR 已完成蒸餾（見「已完成」區）**；Mark Douglas / EmperorBTC / GCR 的真正蒸餾待確認語料來源。**TJR 是否納入生效人格由使用者在預登記決定**——一旦 ICT+TJR 雙人格生效，R2 結構化反駁流程自動啟用（協議與 DB 已支援），且 `preregistration_DRAFT.md` §1 需從單一 ICT 改為多人格，ensemble lift 與 BH-FDR 隨之適用（第一筆紀錄落地前完成）
 - Ensemble lift 與分歧情境表現分析
 - 資訊不對稱資料切面（3.4）
 - 產品化（B 路線：Claude API 化＋Web 介面）——「先驗證再包裝」，DB／聚合／預登記層可直接沿用
@@ -199,6 +200,8 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 | [engine/legacy_gemini_runner.py](engine/legacy_gemini_runner.py) | 舊 Gemini 引擎（已封存，僅供歷史參考） |
 | [data/ingestion.py](data/ingestion.py) | Binance 行情抓取、摘要生成、事後收盤價回補 |
 | [tests/](tests/) | pytest（聚合邊界＋落地紀律，25 個） |
+| `.claude/skills/ict-perspective/SKILL.md` | ICT 人格 Skill（537 逐字稿蒸餾） |
+| `.claude/skills/tjr-perspective/SKILL.md` | TJR 人格 Skill（2026-07-19 蒸餾，765 逐字稿；`references/research/` 存完整調研） |
 | `../.claude/skills/trader-debate/SKILL.md` | Orchestrator skill（辯論協議 runbook） |
 
 相關知識庫頁（vault `知識庫/`）：[[專案總覽]]、[[quant-strategy-dev skill]]、[[多重測試與測試帳本]]、[[倖存者偏差]]
