@@ -165,7 +165,7 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 
 ### 待評估（多人格上線後）
 
-- **TJR、EmperorBTC 已完成蒸餾（見「已完成」區）**；Mark Douglas 語料薄待確認、**GCR 無 YT 語料無法用此流程蒸餾**（需其 Twitter/X 文字存檔才能走純本地語料模式）。**哪些人格納入生效由使用者在預登記決定**——一旦多人格生效，R2 結構化反駁流程自動啟用（協議與 DB 已支援），且 `preregistration_DRAFT.md` §1 需從單一 ICT 改為多人格，ensemble lift 與 BH-FDR 隨之適用（第一筆紀錄落地前完成）。EmperorBTC 因 crypto 原生＋框架對立，特別適合納入 BTC 辯論
+- **TJR、EmperorBTC 已完成蒸餾（見「已完成」區）**；Mark Douglas 語料薄待確認、**GCR 無 YT 語料無法用此流程蒸餾**（需其 Twitter/X 文字存檔才能走純本地語料模式）。**哪些人格納入生效由使用者決定**——預登記已生效（2026-07-19），納入新人格屬受測系統重大變更，需在 [preregistration.md](preregistration.md) 以 §8 增補條目登記（載明人格清單與各自語料截止日）後才可落地多人格紀錄；一旦多人格生效，R2 結構化反駁流程自動啟用（協議與 DB 已支援），ensemble lift 與 BH-FDR 隨之適用。EmperorBTC 因 crypto 原生＋框架對立，特別適合納入 BTC 辯論
 - Ensemble lift 與分歧情境表現分析
 - 資訊不對稱資料切面（3.4）
 - 產品化（B 路線：Claude API 化＋Web 介面）——「先驗證再包裝」，DB／聚合／預登記層可直接沿用
