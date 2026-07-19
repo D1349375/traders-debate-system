@@ -22,8 +22,11 @@
 - [x] **市場摘要 v2 已上線(2026-07-19)**:週52/日90/4h42 已收盤 K 線 + 資金費率 + 快照,as-of 參數支援回測模式(該日開盤價近似);protocol v2 升版,07-19 兩筆為 v1 樣本依版本過濾;34 pytest 全過。設計:`市場摘要v2_資訊集設計.md`(OI 因回測不可重現排除,資訊不對稱階段再議)
 
 ## 待評估（多人格上線後才需要）
-- [ ] TJR、Mark Douglas、EmperorBTC、GCR 目前都還是模板版，尚未比照ICT真正蒸餾（需先確認有無可用語料來源，如YouTube逐字稿）
-- [ ] Ensemble lift（個別vs綜合命中率比較）與分歧情境表現分析——目前只有ICT一個人格，做不了
+- [x] **TJR 已完成真正蒸餾（2026-07-19）**：765 支逐字稿走完女媧全流程，產出 `.claude/skills/tjr-perspective/SKILL.md`，3 子 agent 驗證通過
+- [x] **EmperorBTC 已完成真正蒸餾（2026-07-19）**：以 `data/fetch_transcripts.py` 自抓 81 支逐字稿，走完女媧流程，產出 `.claude/skills/emperorbtc-perspective/SKILL.md`，3 子 agent 驗證通過（crypto 原生＋反 ICT 操縱敘事，辯論框架分歧）
+- [x] **GCR 確認無法用 YT 流程蒸餾**：Twitter/X 匿名者、已消失、YouTube 無本人頻道（需其 X 文字存檔才能走純本地語料模式）。Mark Douglas 語料薄（無官方頻道）待確認來源
+- [ ] **決定哪些人格納入生效**（ICT / TJR / EmperorBTC）→ 若多人格，第一筆紀錄前需更新 `preregistration_DRAFT.md` §1（單一 ICT → 多人格）並啟用 R2 結構化反駁
+- [ ] Ensemble lift（個別vs綜合命中率比較）與分歧情境表現分析——多人格生效後即可做
 
 ## 未來方向（待評估，尚未決定）
 - [ ] 將「交易員辯論」流程本身封裝成一個 Claude Skill（比照女媧skill的模式：`/交易員辯論` 一鍵跑今日 bias）
