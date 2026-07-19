@@ -13,9 +13,13 @@
 - [x] 修 `database/schema.py` 補事後結果欄位 + `backtest_runs` 表（2026-07-19,DB 已重建;is_correct 不入庫,由分析層依預登記命中定義計算）
 - [x] C 架構實作（2026-07-19）：`main.py` CLI + `database/db.py` 落地層 + `engine/aggregate.py` 機械聚合 + trader-debate orchestrator skill;25 pytest 全過;舊 Gemini 引擎封存為 `engine/legacy_gemini_runner.py`
 - [x] 語料洩漏處理方式已定（2026-07-19）：走「等新資料」路線——每日前瞻累積,不回測語料涵蓋期（已寫入 preregistration 草案 §5）
-- [ ] **累積第一筆紀錄前**：使用者確認 `preregistration_DRAFT.md`（尤其 Neutral ±0.5% 門檻與樣本數門檻）→ 改名 `preregistration.md` 簽署生效
-- [ ] 開始每日累積真實 bias 紀錄（對 Claude Code 說「跑今日 bias」）
-- [ ] n≥30 前實作 `bias_report_metrics.py`：方向命中率 + Brier Score/校準曲線 + MCPT,強制表+圖,附 pytest（Phase4規劃 2.1/§7.4）
+- [x] 預登記生效（2026-07-19 使用者確認）：雙標的 BTC ±0.5% / ETH ±1.0%、1d 主地平線、n≥30/60 逐標的、報告必附門檻敏感度附錄與修改建議 → `preregistration.md`
+- [x] 每日累積已啟動:**首筆 2026-07-19 落地**(BTC+ETH 各一筆,ICT R1)。之後每天對 Claude Code 說「跑今日 bias」
+- [ ] n≥30 前實作 `bias_report_metrics.py`：方向命中率 + Brier Score/校準曲線 + MCPT + Neutral 門檻敏感度附錄,強制表+圖,附 pytest（Phase4規劃 2.1/§7.4、preregistration §5）
+
+## 進行中討論
+- [ ] **回測支線（探索性,2026-02~07-14 半乾淨區）待與使用者討論後啟動**,懸而未決:(a) 語料稽核判定標準多嚴——提到 BTC/ETH 就剔除該日,還是要具體到價位/方向才剔除;(b) pilot 30 天怎麼選——隨機抽 vs 連續段;(c) 探索性預登記是否也走使用者簽署流程。背景見 `回測污染分析_雙層記憶.md`。**有賞味期限:模型升級到更新知識截止日即失效,要做要趁早**
+- [x] **市場摘要 v2 已上線(2026-07-19)**:週52/日90/4h42 已收盤 K 線 + 資金費率 + 快照,as-of 參數支援回測模式(該日開盤價近似);protocol v2 升版,07-19 兩筆為 v1 樣本依版本過濾;34 pytest 全過。設計:`市場摘要v2_資訊集設計.md`(OI 因回測不可重現排除,資訊不對稱階段再議)
 
 ## 待評估（多人格上線後才需要）
 - [ ] TJR、Mark Douglas、EmperorBTC、GCR 目前都還是模板版，尚未比照ICT真正蒸餾（需先確認有無可用語料來源，如YouTube逐字稿）

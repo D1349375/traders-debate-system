@@ -20,23 +20,24 @@ description: >-
 
 ## 前置檢查
 
-1. 確認 `DebateSystem/preregistration.md` 存在且已由使用者確認生效。
-   **若只有 `preregistration_DRAFT.md`(草案):停下來,請使用者先確認預登記,不可先累積紀錄。**
-2. 當前生效人格清單見 preregistration(現階段:僅 ICT)。
+1. 確認 `DebateSystem/preregistration.md` 存在且已生效(已生效:2026-07-19 版)。
+   **若不存在或被作廢:停下來,請使用者先完成預登記,不可累積紀錄。**
+2. 生效人格與標的以 preregistration 為準。現行:人格=ICT;標的=**BTC/USDT 與 ETH/USDT**(每天兩個標的都要跑)。
 
-## 流程
+## 流程(對每個標的獨立走完 Step 1-4)
 
 ### Step 1 — 抓行情
 ```
 venv\Scripts\python.exe main.py market --asset BTC/USDT
+venv\Scripts\python.exe main.py market --asset ETH/USDT
 ```
-輸出第一行是 `{"date": ..., "asset": ...}`,其後是行情摘要全文。記下 date/asset,摘要原文傳給人格。
+每次輸出第一行是 `{"date": ..., "asset": ...}`,其後是行情摘要全文。記下 date/asset,摘要原文傳給人格。
 
 ### Step 2 — R1 獨立盲判
-對每個生效人格**平行**開一個 subagent(Agent 工具,general-purpose 即可):
+對**每個生效人格 × 每個標的**各開一個獨立 subagent(Agent 工具,general-purpose 即可),可全部平行:
 
-- prompt 組成:該人格的 SKILL.md 全文(ICT 在 `.claude/skills/ict-perspective/SKILL.md`,subagent 自行讀取)+ 行情摘要 + 輸出格式要求
-- **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊**
+- prompt 組成:該人格的 SKILL.md 全文(ICT 在 `.claude/skills/ict-perspective/SKILL.md`,subagent 自行讀取)+ **該標的**的行情摘要 + 輸出格式要求
+- **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊;也不得混入其他標的的摘要**(逐標的獨立判斷,歸因才乾淨)
 - 要求輸出嚴格 JSON:
 ```json
 {"direction": "Bullish|Bearish|Neutral", "confidence": 0-100, "reasoning": "以該人格口吻與框架的完整分析"}
@@ -59,7 +60,7 @@ venv\Scripts\python.exe main.py record --json <r1檔案路徑>
 
 record 落地(round=2)。
 
-### Step 4 — 聚合與落地
+### Step 4 — 聚合與落地(逐標的)
 ```
 venv\Scripts\python.exe main.py finalize --date <date> --asset <asset> [--summary-file <敘述總結檔>]
 ```
@@ -67,7 +68,7 @@ venv\Scripts\python.exe main.py finalize --date <date> --asset <asset> [--summar
 finalize 會自動:R1 旁路聚合(無辯論基準)+ 末輪最終聚合 + 分歧度統計 + price_at_bias。
 
 ### Step 5 — 回報使用者
-回報:最終方向/信心、R1 基準(若與最終不同要點出)、各人格立場摘要、分歧度。
+逐標的回報:最終方向/信心、R1 基準(若與最終不同要點出)、各人格立場摘要、分歧度。
 結尾必附一句:**「此為研究性統計工具的輸出,非投資建議。」**
 
 ## 回填事後價格(獨立操作,任何時候可跑)

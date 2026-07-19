@@ -18,18 +18,19 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
 
-from data.ingestion import fetch_daily_market_data, generate_market_summary, fetch_close_on
+from data.ingestion import build_market_context, fetch_close_on
 from database.db import get_session, upsert_market, record_opinion, finalize, fill_outcomes
 
-PROTOCOL_VERSION = "v1-2026-07-19"  # 兩輪固定:R1 盲判 → R2 結構化反駁;單人格只跑 R1
+# v2-2026-07-19:摘要升級為多時間框架資訊集(週52/日90/4h42+費率+快照,見 市場摘要v2_資訊集設計.md)
+# 協議不變:兩輪固定,R1 盲判 → R2 結構化反駁;單人格只跑 R1
+PROTOCOL_VERSION = "v2-2026-07-19"
 
 
 def cmd_market(args):
-    data = fetch_daily_market_data(args.asset)
+    data, summary = build_market_context(args.asset, as_of=args.as_of)
     if not data:
         print("抓取行情失敗", file=sys.stderr)
         return 1
-    summary = generate_market_summary(data)
     session = get_session()
     upsert_market(session, data, summary)
     print(json.dumps({"date": data["date"], "asset": data["asset"]}, ensure_ascii=False))
@@ -94,6 +95,8 @@ def main():
 
     p = sub.add_parser("market", help="抓行情並寫入 DB")
     p.add_argument("--asset", default="BTC/USDT")
+    p.add_argument("--as-of", dest="as_of", default=None,
+                   help="回測模式:YYYY-MM-DD(快照=該日開盤價近似);省略=實盤模式")
     p.set_defaults(fn=cmd_market)
 
     p = sub.add_parser("record", help="落地人格判斷(JSON 檔)")

@@ -1,65 +1,172 @@
+"""行情抓取與摘要生成。
+
+v2(2026-07-19 起,設計見 市場摘要v2_資訊集設計.md):
+- 多時間框架已收盤 K 線(週52/日90/4h42)+ 資金費率 + 當下快照
+- 中性資訊集:只給原始 OHLCV,不預算任何結構(FVG/壓力位/指標)
+- as_of 參數:實盤傳 None(=now),回測傳歷史日期 → 實盤與回測輸入格式位元級一致
+- 嚴格 walk-forward:K 線表只含 as-of 時點前已收盤者;未收盤資訊只進「當下快照」段
+"""
 import ccxt
-import pandas as pd
 import datetime
 
-def fetch_daily_market_data(symbol='BTC/USDT', timeframe='1d'):
+TIMEFRAMES_V2 = (("1w", 52), ("1d", 90), ("4h", 42))
+_TF_MS = {"1w": 7 * 86400 * 1000, "1d": 86400 * 1000, "4h": 4 * 3600 * 1000}
+_TF_LABEL = {"1w": "週線", "1d": "日線", "4h": "4小時線"}
+
+
+# ---------- 純函數(可測試,不碰網路) ----------
+
+def select_closed(rows, tf_ms, as_of_ms, count):
+    """從 ohlcv rows 取出 as_of 時點前已完整收盤的最後 count 根。
+
+    K 線 [ts, o, h, l, c, v] 的收盤時刻 = ts + tf_ms;收盤時刻 <= as_of 才算已收。
     """
-    獲取 Binance 的每日 OHLCV 行情與基本數據
+    closed = [r for r in rows if r[0] + tf_ms <= as_of_ms]
+    return closed[-count:]
+
+
+def format_candles(rows):
+    """OHLCV → CSV 文字表格(date,open,high,low,close,volume)。"""
+    lines = ["date,open,high,low,close,volume"]
+    for ts, o, h, l, c, v in rows:
+        d = datetime.datetime.fromtimestamp(ts / 1000, tz=datetime.timezone.utc)
+        lines.append(f"{d.strftime('%Y-%m-%d %H:%M')},{o},{h},{l},{c},{v}")
+    return "\n".join(lines)
+
+
+def compose_summary_v2(asset, judgment_date, sections, funding_now, funding_avg7, snapshot):
+    """組裝 v2 摘要全文。
+
+    sections: list of (timeframe, rows);snapshot: dict(price, change_24h, high, low, note)
     """
-    # 初始化幣安交易所 (使用現貨/U本位合約都可以，這裡示範現貨)
-    exchange = ccxt.binance({
-        'enableRateLimit': True,
-    })
-    
-    # 獲取最近 2 天的日線數據 (昨天與今天)
+    parts = [
+        f"【{asset} 市場多時間框架摘要 | 判斷日: {judgment_date}】",
+        "以下 K 線均為判斷時點前已完整收盤的數據(UTC)。CSV 欄位:date,open,high,low,close,volume",
+        "",
+    ]
+    for tf, rows in sections:
+        parts.append(f"=== {_TF_LABEL[tf]}(最近 {len(rows)} 根已收盤)===")
+        parts.append(format_candles(rows))
+        parts.append("")
+    parts.append("=== 永續合約資金費率 ===")
+    if funding_now is None:
+        parts.append("無法取得(本次省略,不影響其他數據)")
+    else:
+        avg_txt = f",近 7 日均值 {funding_avg7:.6f}" if funding_avg7 is not None else ""
+        parts.append(f"當期 {funding_now:.6f}{avg_txt}(正=多方付費)")
+    parts.append("")
+    parts.append("=== 當下快照 ===")
+    parts.append(f"價格: {snapshot['price']}")
+    if snapshot.get("change_24h") is not None:
+        parts.append(f"24H 變化: {snapshot['change_24h']}%")
+    if snapshot.get("high") is not None:
+        parts.append(f"今日盤中高/低(未收盤): {snapshot['high']} / {snapshot['low']}")
+    if snapshot.get("note"):
+        parts.append(f"備註: {snapshot['note']}")
+    parts.append("")
+    parts.append("(請根據以上數據與您的交易人格,給出該判斷日的 Daily Bias [Bullish/Bearish/Neutral] 與判斷理由。)")
+    return "\n".join(parts)
+
+
+# ---------- 抓取層 ----------
+
+def _fetch_tf(exchange, symbol, timeframe, count, as_of_ms):
+    tf_ms = _TF_MS[timeframe]
+    since = as_of_ms - (count + 3) * tf_ms
+    rows = exchange.fetch_ohlcv(symbol, timeframe, since=since, limit=count + 3)
+    return select_closed(rows, tf_ms, as_of_ms, count)
+
+
+def _fetch_funding(symbol, as_of_ms, live):
+    """回傳 (當期費率, 近7日均值);任何失敗回 (None, None),摘要誠實標示。"""
     try:
-        ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=2)
-        
-        if not ohlcv or len(ohlcv) < 2:
-            raise ValueError("無法獲取足夠的 OHLCV 數據")
-            
-        # ohlcv 格式: [timestamp, open, high, low, close, volume]
-        yesterday_data = ohlcv[0]
-        today_data = ohlcv[1]
-        
-        # 抓取最近 24 小時的 Ticker 數據 (包含波動率等)
-        ticker = exchange.fetch_ticker(symbol)
-        
-        data = {
-            "date": datetime.datetime.fromtimestamp(today_data[0]/1000).strftime('%Y-%m-%d'),
-            "asset": symbol,
-            "open": today_data[1],
-            "high": today_data[2],
-            "low": today_data[3],
-            "close": today_data[4],
-            "volume": today_data[5],
-            "yesterday_close": yesterday_data[4],
-            "24h_change_percent": ticker.get('percentage', 0), # 24H 漲跌幅百分比
-        }
-        
-        # U本位合約的 OI/資金費率需切換 futures API,尚未接;誠實留空而非塞字串
-        data['open_interest'] = None
-        data['funding_rate'] = None
-
-        return data
-
+        fut = ccxt.binanceusdm({"enableRateLimit": True})
+        swap = symbol  # binanceusdm 直接用 BTC/USDT
+        since = as_of_ms - 7 * 86400 * 1000
+        hist = fut.fetch_funding_rate_history(swap, since=since, limit=100)
+        rates = [h["fundingRate"] for h in hist
+                 if h.get("fundingRate") is not None and h["timestamp"] <= as_of_ms]
+        avg7 = sum(rates) / len(rates) if rates else None
+        if live:
+            cur = fut.fetch_funding_rate(swap).get("fundingRate")
+            if cur is None and rates:
+                cur = rates[-1]
+        else:
+            cur = rates[-1] if rates else None
+        return cur, avg7
     except Exception as e:
-        print(f"獲取行情資料失敗: {e}")
-        return None
+        print(f"資金費率取得失敗(省略): {e}")
+        return None, None
+
+
+def build_market_context(symbol="BTC/USDT", as_of=None):
+    """產生 v2 摘要與 DB 落地資料。
+
+    as_of=None → 實盤模式(判斷日=今日 UTC,快照=即時價)
+    as_of="YYYY-MM-DD" → 回測模式(快照=該日開盤價近似,見設計文件 §3)
+    回傳 (data_dict, summary_text);失敗回 (None, None)。
+    """
+    exchange = ccxt.binance({"enableRateLimit": True})
+    live = as_of is None
+    try:
+        if live:
+            now = datetime.datetime.now(datetime.timezone.utc)
+            judgment_date = now.strftime("%Y-%m-%d")
+            as_of_ms = int(now.timestamp() * 1000)
+        else:
+            judgment_date = as_of
+            as_of_ms = int(datetime.datetime.fromisoformat(as_of).replace(
+                tzinfo=datetime.timezone.utc).timestamp() * 1000)  # 該日 00:00 UTC
+
+        sections = [(tf, _fetch_tf(exchange, symbol, tf, count, as_of_ms))
+                    for tf, count in TIMEFRAMES_V2]
+        if not sections[1][1]:
+            raise ValueError("日線資料為空")
+
+        funding_now, funding_avg7 = _fetch_funding(symbol, as_of_ms, live)
+
+        if live:
+            ticker = exchange.fetch_ticker(symbol)
+            today = exchange.fetch_ohlcv(symbol, "1d", limit=1)[-1]
+            snapshot = {"price": ticker["last"], "change_24h": ticker.get("percentage"),
+                        "high": today[2], "low": today[3], "note": None}
+            data = {"date": judgment_date, "asset": symbol,
+                    "open": today[1], "high": today[2], "low": today[3],
+                    "close": ticker["last"], "volume": today[5],
+                    "funding_rate": funding_now}
+        else:
+            day = exchange.fetch_ohlcv(symbol, "1d", since=as_of_ms, limit=1)[0]
+            day_date = datetime.datetime.fromtimestamp(
+                day[0] / 1000, tz=datetime.timezone.utc).strftime("%Y-%m-%d")
+            if day_date != as_of:
+                raise ValueError(f"找不到 {as_of} 的日 K(取得 {day_date})")
+            snapshot = {"price": day[1], "change_24h": None, "high": None, "low": None,
+                        "note": "回測模式:以該日開盤價為判斷時點近似,無盤中資訊"}
+            data = {"date": judgment_date, "asset": symbol,
+                    "open": day[1], "high": None, "low": None,
+                    "close": day[1], "volume": None,
+                    "funding_rate": funding_now}
+
+        summary = compose_summary_v2(symbol, judgment_date, sections,
+                                     funding_now, funding_avg7, snapshot)
+        return data, summary
+    except Exception as e:
+        print(f"抓取 {symbol} 行情失敗: {e}")
+        return None, None
 
 
 def fetch_close_on(symbol, date_str):
     """抓指定日期(UTC)的日線收盤價,供事後結果回填用。找不到該日K線回傳 None。"""
-    exchange = ccxt.binance({'enableRateLimit': True})
+    exchange = ccxt.binance({"enableRateLimit": True})
     since = int(datetime.datetime.fromisoformat(date_str).replace(
         tzinfo=datetime.timezone.utc).timestamp() * 1000)
     try:
-        ohlcv = exchange.fetch_ohlcv(symbol, '1d', since=since, limit=1)
+        ohlcv = exchange.fetch_ohlcv(symbol, "1d", since=since, limit=1)
         if not ohlcv:
             return None
         ts, _o, _h, _l, close, _v = ohlcv[0]
         candle_date = datetime.datetime.fromtimestamp(
-            ts / 1000, tz=datetime.timezone.utc).strftime('%Y-%m-%d')
+            ts / 1000, tz=datetime.timezone.utc).strftime("%Y-%m-%d")
         if candle_date != date_str:
             return None
         return close
@@ -67,31 +174,8 @@ def fetch_close_on(symbol, date_str):
         print(f"抓取 {symbol} {date_str} 收盤價失敗: {e}")
         return None
 
-def generate_market_summary(data):
-    """
-    將數據轉換為餵給 LLM 交易員的文字摘要
-    """
-    if not data:
-        return "無法獲取市場數據。"
-        
-    trend = "上漲" if data.get('24h_change_percent', 0) > 0 else "下跌"
-    
-    summary = f"【今日 {data['asset']} 市場摘要】\n"
-    summary += f"日期: {data['date']}\n"
-    summary += f"目前現貨價格: {data['close']} USDT (24H 變化: {data.get('24h_change_percent', 0)}% - {trend})\n"
-    summary += f"今日最高價: {data['high']} | 最低價: {data['low']}\n"
-    summary += f"昨日收盤價: {data['yesterday_close']}\n"
-    summary += f"現貨 24H 成交量: {data['volume']} 顆\n"
-    
-    summary += "\n(這是一份由系統生成的每日行情快照。請根據以上數據與您的交易人格，給出今天的 Daily Bias [Bullish/Bearish/Neutral] 與判斷理由。)"
-    
-    return summary
 
 if __name__ == "__main__":
-    print("正在測試抓取 Binance 行情數據...")
-    market_data = fetch_daily_market_data()
-    if market_data:
-        summary = generate_market_summary(market_data)
-        print("\n=== 行情摘要 (將發送給各個人格) ===")
-        print(summary)
-        print("==================================")
+    data, summary = build_market_context("BTC/USDT")
+    if data:
+        print(summary[:2000])

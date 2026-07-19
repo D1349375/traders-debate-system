@@ -149,19 +149,17 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
   - `.claude/skills/trader-debate/SKILL.md` orchestrator skill（「跑今日 bias」即觸發）——原「未來方向」的 Skill 化提前完成
   - [tests/](tests/) 25 個 pytest 全過（聚合邊界案例＋落地紀律＋回填冪等）；`market` 指令實測通過
   - 舊 Gemini 引擎封存為 [engine/legacy_gemini_runner.py](engine/legacy_gemini_runner.py)
-- [x] 預登記草案 [preregistration_DRAFT.md](preregistration_DRAFT.md)（**尚未生效，待使用者確認**）
+- [x] **預登記已生效**（[preregistration.md](preregistration.md)，2026-07-19 使用者確認）：雙標的 **BTC/USDT（Neutral ±0.5%）＋ ETH/USDT（Neutral ±1.0%）**、1d 主地平線、n≥30/60 門檻（逐標的）、每份報告必附 Neutral 門檻敏感度分析與修改建議（探索性附錄；採納建議＝重登新版、樣本重起算）
 
 ### 目前缺口
 
-1. **預登記未生效**：`preregistration_DRAFT.md` 需使用者逐項確認（尤其 Neutral 門檻 ±0.5%、n≥30/60 門檻）後改名 `preregistration.md` 簽署——**第一筆紀錄落地前必須完成**，trader-debate skill 會擋。
-2. **`bias_report_metrics.py` 未實作**：Phase 4 的強制指標表 script（命中率＋CI、Brier、校準、MCPT），等樣本開始累積後、首次報告（n≥30）前完成即可。
+1. **`bias_report_metrics.py` 未實作**：Phase 4 的強制指標表 script（命中率＋CI、Brier、校準、MCPT、**Neutral 門檻敏感度附錄**），等樣本開始累積後、首次報告（單標的 n≥30）前完成即可。
 
 ### 下一步（依序）
 
-1. 使用者確認預登記草案 → 生效
-2. 開始每日累積：對 Claude Code 說「跑今日 bias」即可（trader-debate skill 全自動：抓行情→ICT subagent 盲判→落地→聚合）
-3. 平日不定期跑 `python main.py outcomes` 回填事後價格（或每次跑 bias 時 skill 自動順跑）
-4. n≥30 前實作 `bias_report_metrics.py`（含 pytest 邊界案例）
+1. **開始每日累積**：對 Claude Code 說「跑今日 bias」（trader-debate skill 全自動：BTC＋ETH 各自抓行情→ICT subagent 盲判→落地→聚合）
+2. 平日不定期跑 `python main.py outcomes` 回填事後價格（或每次跑 bias 時 skill 自動順跑）
+3. n≥30 前實作 `bias_report_metrics.py`（含 pytest 邊界案例）
 
 ### 待評估（多人格上線後）
 
@@ -190,7 +188,9 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 | [TODO.md](TODO.md) | 工作清單（與本文件進度區同步維護） |
 | [交易員人格蒸餾辯論系統 — 技術架構與工作分解(WBS).md](交易員人格蒸餾辯論系統%20—%20技術架構與工作分解\(WBS\).md) | 原始規劃（歷史文件，部分已演化） |
 | [Phase4_回測系統_規劃.md](Phase4_回測系統_規劃.md) | 回測系統完整規劃（含 v13 對齊 §7） |
-| [preregistration_DRAFT.md](preregistration_DRAFT.md) | 命中定義預登記（草案，待確認生效） |
+| [preregistration.md](preregistration.md) | 命中定義預登記（**已生效 2026-07-19**，鎖死不可改） |
+| [回測污染分析_雙層記憶.md](回測污染分析_雙層記憶.md) | 為何不能回測過去：語料記憶可稽核／權重記憶只能繞開，可用窗口與探索性回測前置條件 |
+| [市場摘要v2_資訊集設計.md](市場摘要v2_資訊集設計.md) | 資訊集設計：歷史是輸入不是洩漏、中性資訊集原則、v2 規格與版本治理 |
 | [youtube_scraper_guide.md](youtube_scraper_guide.md) | 語料抓取流程 |
 | [main.py](main.py) | 落地 CLI：`market`／`record`／`finalize`／`outcomes` |
 | [database/schema.py](database/schema.py) | SQLite schema（四張表，含事後價格欄位） |
