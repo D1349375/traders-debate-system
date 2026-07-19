@@ -1,0 +1,82 @@
+---
+name: trader-debate
+description: >-
+  交易員人格辯論 orchestrator:跑今日 Daily Bias 完整流程(抓行情→人格 subagent 盲判→結構化反駁→機械聚合→落地 SQLite)。
+  觸發詞:「交易員辯論」「跑今日 bias」「daily bias」「/交易員辯論」。
+  也用於回填事後價格(「回填結果」「outcomes」)。專案位置:Side Project/DebateSystem/。
+---
+
+# 交易員辯論 Orchestrator Runbook
+
+你(主 agent)在此流程中的身分是**裁判/記帳員**。職責邊界(嚴格遵守):
+
+- ✅ 分發行情摘要、調度人格 subagent、收集輸出、呼叫 CLI 落地
+- ❌ **禁止自己分析行情、給出方向判斷**——你不是第 N+1 個人格
+- ❌ 禁止修改機械聚合的結果;敘述性總結只能描述,不得推翻聚合方向
+- ❌ 禁止加開輪次:協議固定 R1 + R2 兩輪(單人格只跑 R1),吵得精彩也不加輪
+
+所有指令在 `Side Project/DebateSystem/` 目錄下用 venv 執行:
+`venv\Scripts\python.exe main.py <cmd>`
+
+## 前置檢查
+
+1. 確認 `DebateSystem/preregistration.md` 存在且已由使用者確認生效。
+   **若只有 `preregistration_DRAFT.md`(草案):停下來,請使用者先確認預登記,不可先累積紀錄。**
+2. 當前生效人格清單見 preregistration(現階段:僅 ICT)。
+
+## 流程
+
+### Step 1 — 抓行情
+```
+venv\Scripts\python.exe main.py market --asset BTC/USDT
+```
+輸出第一行是 `{"date": ..., "asset": ...}`,其後是行情摘要全文。記下 date/asset,摘要原文傳給人格。
+
+### Step 2 — R1 獨立盲判
+對每個生效人格**平行**開一個 subagent(Agent 工具,general-purpose 即可):
+
+- prompt 組成:該人格的 SKILL.md 全文(ICT 在 `.claude/skills/ict-perspective/SKILL.md`,subagent 自行讀取)+ 行情摘要 + 輸出格式要求
+- **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊**
+- 要求輸出嚴格 JSON:
+```json
+{"direction": "Bullish|Bearish|Neutral", "confidence": 0-100, "reasoning": "以該人格口吻與框架的完整分析"}
+```
+
+收齊後寫入暫存 JSON 檔(scratchpad),每筆補上 `date`/`asset`/`persona`/`round`(=1)/`model_id`(subagent 實際使用的模型 ID),然後:
+```
+venv\Scripts\python.exe main.py record --json <r1檔案路徑>
+```
+
+### Step 3 — R2 結構化反駁(僅當生效人格 ≥2)
+單人格直接跳到 Step 4。多人格時,對每個人格再開 subagent,prompt 包含:
+
+1. 自己的 R1 輸出 + **其他人格的 R1 結構化三欄**(direction/confidence/reasoning,不傳過程全文)
+2. 協議必答項:
+   - (a) 指出**與你對立的最強論點**並正面回應(不准挑最弱的打)
+   - (b) 給出 falsifier:什麼證據出現會讓你改判
+   - (c) 更新後的 direction/confidence(可以不變,但要說明為何不變)
+3. 輸出 JSON 加一欄 `falsifier`
+
+record 落地(round=2)。
+
+### Step 4 — 聚合與落地
+```
+venv\Scripts\python.exe main.py finalize --date <date> --asset <asset> [--summary-file <敘述總結檔>]
+```
+敘述總結(可選)由你撰寫:僅描述各方立場與分歧點,**不得下自己的方向結論**。
+finalize 會自動:R1 旁路聚合(無辯論基準)+ 末輪最終聚合 + 分歧度統計 + price_at_bias。
+
+### Step 5 — 回報使用者
+回報:最終方向/信心、R1 基準(若與最終不同要點出)、各人格立場摘要、分歧度。
+結尾必附一句:**「此為研究性統計工具的輸出,非投資建議。」**
+
+## 回填事後價格(獨立操作,任何時候可跑)
+```
+venv\Scripts\python.exe main.py outcomes
+```
+只回填已收 K 線且為空的欄位,冪等可重複執行。建議每次跑 daily bias 前順手執行一次。
+
+## 落地紀律
+
+- record/finalize 遇「已落地不可覆寫」報錯=當日已跑過,**不要試圖刪除或改寫**,向使用者回報即可
+- 任何統計評估(命中率/Brier)不在本 skill 範圍——那是 Phase 4 的 `bias_report_metrics.py`(未實作),不要臨時手算了就宣稱結論

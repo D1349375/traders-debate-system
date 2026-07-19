@@ -1,0 +1,13 @@
+batch 01: 25/45 covered
+batch 02: 45/45 covered
+batch 03: 44/45 covered
+batch 04: 45/45 covered
+batch 05: 45/45 covered
+batch 06: 45/45 covered
+batch 07: 45/45 covered
+batch 08: 45/45 covered
+batch 09: 45/45 covered
+batch 10: 45/45 covered
+batch 11: 45/45 covered
+batch 12: 42/42 covered
+TOTAL: 516/537
