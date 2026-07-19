@@ -26,22 +26,23 @@ description: >-
 
 ## 流程(對每個標的獨立走完 Step 1-4)
 
-### Step 1 — 抓行情
+### Step 1 — 抓行情(輸入凍結)
+**先檢查 `data/market_context/<date>_<asset代碼>.txt` 是否已存在**(asset代碼=去掉斜線,如 BTCUSDT):
+- **已存在 → 必須直接重用該檔,不得重抓**。同一判斷日的所有 run(含 dry-run、含不同協作者)都吃同一份凍結輸入,否則跨 run 不可比。
+- 不存在 → 抓行情並落檔:
 ```
-venv\Scripts\python.exe main.py market --asset BTC/USDT
-venv\Scripts\python.exe main.py market --asset ETH/USDT
+venv\Scripts\python.exe main.py market --asset BTC/USDT > data\market_context\<date>_BTCUSDT.txt
+venv\Scripts\python.exe main.py market --asset ETH/USDT > data\market_context\<date>_ETHUSDT.txt
 ```
-每次輸出第一行是 `{"date": ..., "asset": ...}`,其後是行情摘要全文。記下 date/asset,摘要原文傳給人格。
+輸出第一行是 `{"date": ..., "asset": ...}`,其後是行情摘要全文。記下 date/asset。
+凍結檔應隨 git 提交,讓協作者重跑時拿到同一份輸入。
 
 ### Step 2 — R1 獨立盲判
 對**每個生效人格 × 每個標的**各開一個獨立 subagent(Agent 工具,general-purpose 即可),可全部平行:
 
-- prompt 組成:該人格的 SKILL.md 全文(ICT 在 `.claude/skills/ict-perspective/SKILL.md`,subagent 自行讀取)+ **該標的**的行情摘要 + 輸出格式要求
+- **prompt 必須逐字使用 `templates/r1_prompt.txt`,只填充 `{佔位符}`,不得增刪或改寫任何語句**(prompt 措辭差異會系統性平移輸出分佈,見「隨機性控制」)。人格 SKILL.md 路徑:ICT=`.claude/skills/ict-perspective/SKILL.md`,其餘同模式。
 - **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊;也不得混入其他標的的摘要**(逐標的獨立判斷,歸因才乾淨)
-- 要求輸出嚴格 JSON:
-```json
-{"direction": "Bullish|Bearish|Neutral", "confidence": 0-100, "reasoning": "以該人格口吻與框架的完整分析"}
-```
+- 輸出格式已寫死在模板內(嚴格 JSON:direction/confidence/reasoning)。
 
 收齊後寫入暫存 JSON 檔(scratchpad),每筆補上 `date`/`asset`/`persona`/`round`(=1)/`model_id`(subagent 實際使用的模型 ID),然後:
 ```
@@ -49,14 +50,10 @@ venv\Scripts\python.exe main.py record --json <r1檔案路徑>
 ```
 
 ### Step 3 — R2 結構化反駁(僅當生效人格 ≥2)
-單人格直接跳到 Step 4。多人格時,對每個人格再開 subagent,prompt 包含:
+單人格直接跳到 Step 4。多人格時,對每個人格再開 subagent:
 
-1. 自己的 R1 輸出 + **其他人格的 R1 結構化三欄**(direction/confidence/reasoning,不傳過程全文)
-2. 協議必答項:
-   - (a) 指出**與你對立的最強論點**並正面回應(不准挑最弱的打)
-   - (b) 給出 falsifier:什麼證據出現會讓你改判
-   - (c) 更新後的 direction/confidence(可以不變,但要說明為何不變)
-3. 輸出 JSON 加一欄 `falsifier`
+- **prompt 必須逐字使用 `templates/r2_prompt.txt`,只填充 `{佔位符}`**。R1 各家輸出先整理成單一 JSON 檔(scratchpad,含 direction/confidence/reasoning 三欄,不含過程全文),路徑填入 `{R1_JSON_PATH}`。
+- 協議必答項 (a)(b)(c) 與輸出格式(JSON 加 `falsifier` 欄)已寫死在模板內。
 
 record 落地(round=2)。
 
@@ -99,3 +96,15 @@ venv\Scripts\python.exe main.py outcomes
 
 - record/finalize 遇「已落地不可覆寫」報錯=當日已跑過,**不要試圖刪除或改寫**,向使用者回報即可
 - 任何統計評估(命中率/Brier)不在本 skill 範圍——那是 Phase 4 的 `bias_report_metrics.py`(未實作),不要臨時手算了就宣稱結論
+
+## 隨機性控制(2026-07-19 起,依兩次同日 dry-run 分歧事件納入)
+
+**事實**:同日、同陣容、名義上同資料的兩次 dry-run 給出不同結果(EBTC Bearish 55 vs Neutral 30;聚合 67 vs 78;一次無人改信心、一次兩家下修)。差異來源分三層,對策不同:
+
+1. **輸入漂移(可消除)**:`market` 的「當下快照」隨抓取時刻變動。→ 已由 Step 1 的凍結檔規則消除:同一判斷日一份輸入,先到先凍結,後跑者必須重用。
+2. **Prompt 漂移(可消除)**:orchestrator 手寫 prompt 的措辭差異會系統性平移人格輸出。→ 已由 `templates/r{1,2}_prompt.txt` 逐字模板消除。**修改模板=修改協議**:須在報告與 DB 摘要中註明模板版本變更日期,分析時分段,不可混算(同「換模型=換預測者」原則)。
+3. **LLM 抽樣隨機性(不可消除,只能量測與平均)**:同輸入同 prompt 下,人格判斷仍是分佈抽樣——包括「敘事層」隨機(如 ICT 兩次選了不同 dealing range 錨點,連帶改變 discount/premium 結論與信心)。對策:
+   - **不重跑**:正式紀錄=當日第一次抽樣,「已落地不可覆寫」就是防 cherry-picking 的機制。dry-run 重跑結果不同是預期行為,不是 bug,不得挑好看的那次講故事。
+   - **靠 n 平均**:預登記 n≥30/60 評估的是分佈的平均技能,單日單次(不管多漂亮)不可作準。
+   - **(選項,未啟用)K 次自洽投票**:每人格×標的 R1 抽 K=3~5 次,取方向眾數+信心中位數,並記錄「人格內分歧度」作為新訊號。成本 K 倍,且**等於改協議**——啟用前須依預登記 §8 增補登記(或作廢重登),樣本自啟用日分段。未經使用者明確決定不得擅自啟用。
+   - **(選項,探索性)穩定性稽核**:對同一份凍結輸入重複 N 次 dry-run,估計各人格的方向翻轉率與信心標準差。僅作探索性參考,結果標註「不計入正式樣本」;建議在考慮多人格轉正前跑一次,讓 §8 增補的決策有數據依據。
