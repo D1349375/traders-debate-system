@@ -54,7 +54,7 @@ Phase 0 篩選交易員 → Phase 1 資料蒐集 → Phase 2 人格蒸餾
 
 ### 2.2 蒸餾經驗與建議（給後續人格）
 
-- **語料量是門檻**：ICT 的品質來自 537 支影片的深度。**TJR（765 支）與 EmperorBTC（81 支）已於 2026-07-19 完成真正蒸餾**。Mark Douglas 仍為模板版（無官方頻道、語料薄）；**GCR 無法用 YT 流程蒸餾**（Twitter/X 匿名者、已消失，YouTube 無本人頻道）。擴展任何人格前先確認有無可用語料來源（YouTube 逐字稿優先；抓取用 `data/fetch_transcripts.py`，已驗證可抓任意頻道）。
+- **語料量是門檻**：ICT 的品質來自 537 支影片的深度。**TJR（765 支）、EmperorBTC（81 支）、Rekt Capital（589 支）已於 2026-07-19 完成真正蒸餾**。Mark Douglas 仍為模板版（無官方頻道、語料薄）；**GCR 無法用 YT 流程蒸餾**（Twitter/X 匿名者、已消失，YouTube 無本人頻道）。擴展任何人格前先確認有無可用語料來源（YouTube 逐字稿優先；抓取用 `data/fetch_transcripts.py`，已驗證可抓任意頻道，並支援可選的抽樣上限參數以處理超大頻道）。
 - **蒸餾品質要先驗證再上線**：比照 ICT 的做法——聊天測語氣、真實圖表測框架，通過才算蒸餾完成。WBS 2.4 的「歷史情境重放一致性 ≥60%」是更嚴格的正式驗收，有語料時間戳的人格可以做。
 - **語料截止日要記錄**：這直接決定回測窗口能不能往回開（見 4.2 的洩漏風險）。ICT 語料涵蓋至 2026 年中。
 
@@ -142,6 +142,7 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 - [x] **ICT 人格完整蒸餾**（全 Phase 跑完），產出 `.claude/skills/ict-perspective/SKILL.md`，聊天+真實圖表測試通過
 - [x] **TJR 人格完整蒸餾（2026-07-19）**：765 支 YouTube 逐字稿（語料 2022-09~2026-07）走完女媧全流程（16 批平行抽取→7 維度合併→三重驗證→組裝），產出 `.claude/skills/tjr-perspective/SKILL.md`，3 子 agent 驗證通過（已知立場／辯論 JSON／邊緣推斷，全程守語言紅線）。研究過程完整留存於 `references/research/`，另附 `DISTILLATION_REPORT.md`
 - [x] **EmperorBTC 人格完整蒸餾（2026-07-19）**：以 `data/fetch_transcripts.py` 自行抓取官方頻道 81 支逐字稿（語料 2025-03~2026-07），走完女媧流程（4 批抽取→合併/三重驗證→組裝），產出 `.claude/skills/emperorbtc-perspective/SKILL.md`，3 子 agent 驗證通過。**crypto 原生（BTC 主場）＋走 Volume/Auction Market Theory 路線、哲學上反對 ICT/TJR 的「操縱獵殺」敘事**——為辯論系統提供真實框架分歧（呼應 §3.4）。附 `DISTILLATION_REPORT.md`
+- [x] **Rekt Capital 人格完整蒸餾（2026-07-19）**：自行抓取 589 支逐字稿（涵蓋約 2019-2026 全週期），走完女媧流程（8 批抽取→3 agent 合併 5 維度檔→三重驗證→組裝），產出 `.claude/skills/rektcapital-perspective/SKILL.md`，3 子 agent 驗證通過。**提供「週期位置」的高時間框架錨（四年減半週期／鏡像原則／週月線收盤紀律）**，與 ICT/TJR（日內結構）、EmperorBTC（拍賣/成交量）形成第三種維度。內建兩項特殊設計：**地平線折價**（週/月框架者在 1d 評估上 confidence 上限 45）與**反向誠實條款**（面對「框架不可證偽」質疑時據實承認而非硬拗）。附 `DISTILLATION_REPORT.md`
 - [x] Phase 4 回測規劃文件完成，並已對齊 quant skill v13（§7 增補）
 - [x] 辯論協議設計定案（本 README 第 3 節：兩輪固定、裁判職責邊界、旁路設計）
 - [x] **C 架構實作完成（2026-07-19）**：
@@ -165,7 +166,7 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 
 ### 待評估（多人格上線後）
 
-- **TJR、EmperorBTC 已完成蒸餾（見「已完成」區）**；Mark Douglas 語料薄待確認、**GCR 無 YT 語料無法用此流程蒸餾**（需其 Twitter/X 文字存檔才能走純本地語料模式）。**哪些人格納入生效由使用者決定**——預登記已生效（2026-07-19），納入新人格屬受測系統重大變更，需在 [preregistration.md](preregistration.md) 以 §8 增補條目登記（載明人格清單與各自語料截止日）後才可落地多人格紀錄；一旦多人格生效，R2 結構化反駁流程自動啟用（協議與 DB 已支援），ensemble lift 與 BH-FDR 隨之適用。EmperorBTC 因 crypto 原生＋框架對立，特別適合納入 BTC 辯論
+- **TJR、EmperorBTC、Rekt Capital 已完成蒸餾（見「已完成」區）**；Benjamin Cowen 與 Michaël van de Poppe 蒸餾進行中；Mark Douglas 語料薄待確認、**GCR 無 YT 語料無法用此流程蒸餾**（需其 Twitter/X 文字存檔才能走純本地語料模式）。**哪些人格納入生效由使用者決定**——預登記已生效（2026-07-19），納入新人格屬受測系統重大變更，需在 [preregistration.md](preregistration.md) 以 §8 增補條目登記（載明人格清單與各自語料截止日）後才可落地多人格紀錄；一旦多人格生效，R2 結構化反駁流程自動啟用（協議與 DB 已支援），ensemble lift 與 BH-FDR 隨之適用。EmperorBTC 因 crypto 原生＋框架對立，特別適合納入 BTC 辯論
 - Ensemble lift 與分歧情境表現分析
 - 資訊不對稱資料切面（3.4）
 - 產品化（B 路線：Claude API 化＋Web 介面）——「先驗證再包裝」，DB／聚合／預登記層可直接沿用
@@ -204,6 +205,7 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 | `.claude/skills/ict-perspective/SKILL.md` | ICT 人格 Skill（537 逐字稿蒸餾） |
 | `.claude/skills/tjr-perspective/SKILL.md` | TJR 人格 Skill（2026-07-19 蒸餾，765 逐字稿；`references/research/` 存完整調研） |
 | `.claude/skills/emperorbtc-perspective/SKILL.md` | EmperorBTC 人格 Skill（2026-07-19 蒸餾，81 逐字稿；crypto 原生、Volume/Auction Market Theory 路線） |
+| `.claude/skills/rektcapital-perspective/SKILL.md` | Rekt Capital 人格 Skill（2026-07-19 蒸餾，589 逐字稿；四年減半週期、高時間框架週期錨） |
 | `../.claude/skills/trader-debate/SKILL.md` | Orchestrator skill（辯論協議 runbook） |
 
 相關知識庫頁（vault `知識庫/`）：[[專案總覽]]、[[quant-strategy-dev skill]]、[[多重測試與測試帳本]]、[[倖存者偏差]]

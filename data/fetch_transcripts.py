@@ -30,6 +30,7 @@ LANGUAGE_PREF = "en"
 CHANNEL_URL = ""
 OUTPUT_DIR = Path()
 ARCHIVE_FILE = Path()
+PLAYLIST_LIMIT = None   # optional: fetch only the N most recent videos
 
 
 def download_all_subtitles():
@@ -61,8 +62,12 @@ def download_all_subtitles():
         "--download-archive", str(ARCHIVE_FILE),
         # Output filename
         "-o", str(OUTPUT_DIR / "%(id)s_%(title)s.%(ext)s"),
-        CHANNEL_URL,
     ]
+    # Optional sampling: only fetch the N most recent videos (for very large channels)
+    if PLAYLIST_LIMIT:
+        cmd += ["--playlist-end", str(PLAYLIST_LIMIT)]
+        print(f"[INFO] Sampling most recent {PLAYLIST_LIMIT} videos\n")
+    cmd += [CHANNEL_URL]
     if COOKIE_FILE.exists():
         cmd += ["--cookies", str(COOKIE_FILE)]
         print(f"[OK] Using cookies: {COOKIE_FILE}\n")
@@ -136,17 +141,20 @@ def convert_vtt_to_txt():
 
 
 def main():
-    global CHANNEL_URL, OUTPUT_DIR, ARCHIVE_FILE
+    global CHANNEL_URL, OUTPUT_DIR, ARCHIVE_FILE, PLAYLIST_LIMIT
 
     # Parse command line arguments
     if len(sys.argv) >= 3:
         trader_name = sys.argv[1]
         CHANNEL_URL = sys.argv[2]
+        # Optional 3rd arg: only fetch the N most recent videos (sampling huge channels)
+        if len(sys.argv) >= 4:
+            PLAYLIST_LIMIT = int(sys.argv[3])
     else:
         trader_name = DEFAULT_TRADER_NAME
         CHANNEL_URL = DEFAULT_CHANNEL_URL
         print(f"[INFO] No arguments provided. Using defaults.")
-        print(f"       Usage: python fetch_transcripts.py <TraderName> <ChannelVideosURL>\n")
+        print(f"       Usage: python fetch_transcripts.py <TraderName> <ChannelVideosURL> [MaxVideos]\n")
 
     OUTPUT_DIR = Path(__file__).parent / "transcripts" / trader_name
     ARCHIVE_FILE = OUTPUT_DIR / "_yt_archive.txt"

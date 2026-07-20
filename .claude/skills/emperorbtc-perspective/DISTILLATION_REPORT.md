@@ -116,7 +116,7 @@
 ```
 
 **後續決策（留給團隊）**：
-1. **是否納入生效人格**：EmperorBTC 是 crypto 原生、與 ICT/TJR 框架對立，非常適合 BTC 辯論。納入需在第一筆紀錄前更新 `preregistration_DRAFT.md` §1 為多人格。
+1. **是否納入生效人格**：EmperorBTC 是 crypto 原生、與 ICT/TJR 框架對立，非常適合 BTC 辯論。預登記已於 2026-07-19 生效（[preregistration.md](../../../preregistration.md)，鎖死不可改），納入新人格需以 **§8 增補條目**登記（載明人格清單與各自語料截止日）後才可落地多人格紀錄。
 2. **GCR**：YT 無語料，無法蒸餾；如要做需其 Twitter/X 文字存檔（純本地語料模式），否則維持不做。
 3. **Mark Douglas**：語料薄（無官方頻道），若要做需先確認可用的講座/書籍文字來源。
 

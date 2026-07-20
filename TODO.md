@@ -25,7 +25,10 @@
 - [x] **TJR 已完成真正蒸餾（2026-07-19）**：765 支逐字稿走完女媧全流程，產出 `.claude/skills/tjr-perspective/SKILL.md`，3 子 agent 驗證通過
 - [x] **EmperorBTC 已完成真正蒸餾（2026-07-19）**：以 `data/fetch_transcripts.py` 自抓 81 支逐字稿，走完女媧流程，產出 `.claude/skills/emperorbtc-perspective/SKILL.md`，3 子 agent 驗證通過（crypto 原生＋反 ICT 操縱敘事，辯論框架分歧）
 - [x] **GCR 確認無法用 YT 流程蒸餾**：Twitter/X 匿名者、已消失、YouTube 無本人頻道（需其 X 文字存檔才能走純本地語料模式）。Mark Douglas 語料薄（無官方頻道）待確認來源
-- [ ] **決定哪些人格納入生效**（ICT / TJR / EmperorBTC）→ 若多人格,需先在 `preregistration.md` §8 增補登記(人格清單+各自語料截止日),之後 R2 結構化反駁自動啟用。注意:TJR/EmperorBTC 的模型記憶/語料條件與 ICT 不同,對回測支線的影響見報告補記
+- [x] **Rekt Capital 已完成真正蒸餾（2026-07-19/20）**：自抓 589 支逐字稿（組員先前的 173 支已含括並補齊），走完女媧流程，3 子 agent 驗證通過；提供「週期位置」的高時間框架維度（四年減半週期／鏡像原則／週月線收盤紀律）
+- [ ] **蒸餾進行中**：Benjamin Cowen（數據/量化/宏觀週期，2481 支抽樣近 400）、Michaël van de Poppe（crypto TA＋altcoin 輪動，1275 支抽樣近 400）
+- [ ] **決定哪些人格納入生效**（ICT / TJR / EmperorBTC / Rekt Capital / …）→ 若多人格,需先在 `preregistration.md` §8 增補登記(人格清單+各自語料截止日),之後 R2 結構化反駁自動啟用。注意:TJR/EmperorBTC/Rekt 的模型記憶/語料條件與 ICT 不同,對回測支線的影響見報告補記
+- [ ] **評估設計問題（Rekt 蒸餾時浮現）**：用單一 1d 主地平線評估所有人格，對**高時間框架人格系統性不利**（Rekt 是週/月框架，其 SKILL 已內建 confidence 上限 45 的地平線折價）。Phase 4 分析時應考慮對這類人格另計 5d/20d 探索性指標
 - [ ] Ensemble lift（個別vs綜合命中率比較）與分歧情境表現分析——多人格生效後即可做
 
 ## 未來方向（待評估，尚未決定）

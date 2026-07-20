@@ -174,7 +174,7 @@ TJR 真實語料含冒犯性內容，蒸餾時**據實揭露其存在、但一�
 
 ## 11. 後續決策（留給團隊）
 
-1. **是否讓 TJR 納入生效人格**（與 ICT 併跑）：若是，**第一筆 bias 落地前**需把 `preregistration_DRAFT.md` §1 從單一 ICT 改成多人格，屆時 R2 結構化反駁自動啟用（協議與 DB 已支援），ensemble lift／BH-FDR 隨之適用。已寫進 TODO 提醒。
+1. **是否讓 TJR 納入生效人格**（與 ICT 併跑）：預登記已於 2026-07-19 生效（[preregistration.md](../../../preregistration.md)，鎖死不可改），因此納入新人格屬受測系統的重大變更，需以 **§8 增補條目**登記（載明人格清單與各自語料截止日）後才可落地多人格紀錄；屆時 R2 結構化反駁自動啟用（協議與 DB 已支援），ensemble lift／BH-FDR 隨之適用。已寫進 TODO 提醒。
 2. **逐字稿 packaging**：TJR skill 的 `references/sources/transcripts/` 目前是空的——逐字稿仍在 `data/transcripts/TJR/`，manifest 指向那裡（避免複製 14MB）。與 ICT（自包含）不同，但同 repo＋videoID 可追溯。只有將來要把 skill **單獨開源**才需要複製進去。
 3. **蒸餾其他人格**（Mark Douglas / EmperorBTC / GCR）：目前仍是模板版，需先確認有無同等級 YouTube 逐字稿語料，才能比照本流程跑。
 
