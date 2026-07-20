@@ -1,0 +1,470 @@
+<meta charset="utf-8">
+<title>交易員人格辯論日報 · 2026-07-20（Dry-Run）</title>
+<style>
+:root{
+  --paper:#F7F5F0; --surface:#FFFFFF; --ink:#211F1A; --ink-2:#5C584E; --ink-3:#8F8A7C;
+  --line:#E3DFD5; --line-soft:#ECE9E0;
+  --bull:#177E63; --bull-soft:#177E6318; --bear:#C43B55; --bear-soft:#C43B5514;
+  --neutral:#8A8578; --neutral-soft:#8A857822; --accent:#8A6D1F; --accent-soft:#8A6D1F14;
+  --ict:#4C5FBF; --tjr:#B0731C; --ebtc:#8A54B8;
+}
+@media (prefers-color-scheme: dark){:root{
+  --paper:#15171B; --surface:#1C1F24; --ink:#E9E7E0; --ink-2:#A8A499; --ink-3:#7A7669;
+  --line:#2C2F36; --line-soft:#24272D;
+  --bull:#2FA985; --bull-soft:#2FA98522; --bear:#E05C74; --bear-soft:#E05C741E;
+  --neutral:#8F8B7E; --neutral-soft:#8F8B7E26; --accent:#CBA23C; --accent-soft:#CBA23C1C;
+  --ict:#8492E8; --tjr:#D69A45; --ebtc:#B586DD;
+}}
+:root[data-theme="dark"]{
+  --paper:#15171B; --surface:#1C1F24; --ink:#E9E7E0; --ink-2:#A8A499; --ink-3:#7A7669;
+  --line:#2C2F36; --line-soft:#24272D;
+  --bull:#2FA985; --bull-soft:#2FA98522; --bear:#E05C74; --bear-soft:#E05C741E;
+  --neutral:#8F8B7E; --neutral-soft:#8F8B7E26; --accent:#CBA23C; --accent-soft:#CBA23C1C;
+  --ict:#8492E8; --tjr:#D69A45; --ebtc:#B586DD;
+}
+:root[data-theme="light"]{
+  --paper:#F7F5F0; --surface:#FFFFFF; --ink:#211F1A; --ink-2:#5C584E; --ink-3:#8F8A7C;
+  --line:#E3DFD5; --line-soft:#ECE9E0;
+  --bull:#177E63; --bull-soft:#177E6318; --bear:#C43B55; --bear-soft:#C43B5514;
+  --neutral:#8A8578; --neutral-soft:#8A857822; --accent:#8A6D1F; --accent-soft:#8A6D1F14;
+  --ict:#4C5FBF; --tjr:#B0731C; --ebtc:#8A54B8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:16px/1.75 "PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px 80px}
+.serif{font-family:Georgia,"Times New Roman","PingFang TC","Microsoft JhengHei",serif}
+.mono{font-family:"Cascadia Code",Consolas,"SF Mono",monospace;font-variant-numeric:tabular-nums}
+header.mast{padding:52px 0 28px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.mast h1{font-size:clamp(30px,4.5vw,44px);line-height:1.2;margin:10px 0 6px;text-wrap:balance;font-weight:700}
+.mast .sub{color:var(--ink-2);font-size:15px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.badge{font-size:12.5px;padding:3px 12px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:var(--surface)}
+.badge.warn{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600}
+.badge.ok{border-color:var(--bull);color:var(--bull);background:var(--bull-soft);font-weight:600}
+section.asset{margin-top:56px}
+.asset-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.asset-head h2{font-size:26px;margin:0;font-weight:700}
+.asset-head .px{color:var(--ink-2);font-size:14.5px}
+h3.block{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:36px 0 14px;font-weight:600}
+.verdicts{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch;margin-top:22px}
+@media(max-width:720px){.verdicts{grid-template-columns:1fr}.v-arrow{transform:rotate(90deg);justify-self:center}}
+.vcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:4px}
+.vcard .vlabel{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.vcard .vdir{font-size:30px;font-weight:700;line-height:1.15}
+.vdir.bull{color:var(--bull)} .vdir.bear{color:var(--bear)} .vdir.neut{color:var(--neutral)}
+.vcard .vmeta{font-size:13.5px;color:var(--ink-2)}
+.v-arrow{align-self:center;color:var(--ink-3);font-size:22px}
+.confbar{height:6px;border-radius:3px;background:var(--line-soft);overflow:hidden;margin-top:8px;display:flex}
+.confbar i{display:block;height:100%}
+.confbar .b{background:var(--bull)} .confbar .r{background:var(--bear)} .confbar .n{background:var(--neutral)}
+.chartbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 14px 8px;margin-top:14px;position:relative}
+.chartbox .ct{font-size:14px;font-weight:600;padding:0 8px 6px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.chartbox .ct .hint{font-weight:400;color:var(--ink-3);font-size:12.5px}
+.chart-scroll{overflow-x:auto}
+svg.kchart{display:block;min-width:640px;width:100%;height:auto}
+.tooltip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;padding:8px 12px;font-size:12.5px;line-height:1.6;box-shadow:0 4px 14px #0003;
+  opacity:0;transition:opacity .12s;z-index:5;white-space:nowrap}
+.tooltip b{font-weight:600}
+.lvl-legend{display:flex;gap:14px 18px;flex-wrap:wrap;padding:10px 8px 6px;font-size:12.5px;color:var(--ink-2)}
+.lvl-legend .it{display:inline-flex;align-items:center;gap:7px}
+.lvl-legend .sw{width:18px;height:0;border-top:2px dashed;display:inline-block}
+.lvl-legend .zw{width:18px;height:10px;border-radius:2px;display:inline-block}
+.aggmath{margin-top:14px;background:var(--accent-soft);border:1px solid var(--line);border-radius:10px;
+  padding:14px 18px;font-size:14px;color:var(--ink-2)}
+.aggmath .mono{color:var(--ink)}
+.personas{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin-top:8px}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px;border-top:3px solid var(--pc,var(--line))}
+.pcard.ict{--pc:var(--ict)} .pcard.tjr{--pc:var(--tjr)} .pcard.ebtc{--pc:var(--ebtc)}
+.pname{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16.5px}
+.pname .dot{width:9px;height:9px;border-radius:50%;background:var(--pc)}
+.pname .tag{font-size:11.5px;font-weight:500;color:var(--ink-3);letter-spacing:.04em}
+.rounds{display:flex;align-items:center;gap:10px;font-size:14px;flex-wrap:wrap}
+.rpill{padding:2px 11px;border-radius:999px;font-weight:600;font-size:13.5px}
+.rpill.bull{background:var(--bull-soft);color:var(--bull)}
+.rpill.bear{background:var(--bear-soft);color:var(--bear)}
+.rpill.neut{background:var(--neutral-soft);color:var(--neutral)}
+.rarrow{color:var(--ink-3)}
+.rnote{font-size:12px;color:var(--ink-3)}
+.pcore{font-size:14px;color:var(--ink-2);line-height:1.75}
+.pcore b{color:var(--ink)}
+details.full{font-size:13.5px;border-top:1px dashed var(--line);padding-top:8px}
+details.full summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13px}
+details.full summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+details.full .rq{margin:10px 0 0;padding:10px 14px;border-left:3px solid var(--pc,var(--line));
+  background:var(--paper);border-radius:0 8px 8px 0;color:var(--ink-2);line-height:1.8}
+details.full .rq b{color:var(--ink)}
+.falsi{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--ink-2);line-height:1.7}
+.falsi .fl{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--bear);font-weight:700}
+.debate{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.debate{grid-template-columns:1fr}}
+.dbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;font-size:14px;color:var(--ink-2);line-height:1.8}
+.dbox h4{margin:0 0 8px;font-size:14px;color:var(--ink)}
+.dbox ul{margin:0;padding-left:20px}
+.dbox li{margin:4px 0}
+.notes{margin-top:60px;border-top:2px solid var(--ink);padding-top:24px}
+.notes h2{font-size:20px;margin:0 0 14px}
+.notes p,.notes li{font-size:14px;color:var(--ink-2);line-height:1.85}
+.notes ol{padding-left:22px}
+footer.disc{margin-top:44px;padding:16px 20px;border:1px solid var(--accent);border-radius:10px;
+  background:var(--accent-soft);font-size:13.5px;color:var(--ink-2);line-height:1.8}
+footer.disc b{color:var(--accent)}
+@media (prefers-reduced-motion: reduce){.tooltip{transition:none}}
+</style>
+
+<div class="wrap">
+<header class="mast">
+  <div class="eyebrow">Trader Persona Debate System · Protocol v2-2026-07-19</div>
+  <h1 class="serif">人格辯論日報：單人格偏見 vs 辯論後偏見</h1>
+  <div class="sub">判斷日 2026-07-20（UTC）· Binance 現貨日線 · 執行引擎 claude-fable-5</div>
+  <div class="badges">
+    <span class="badge warn">DRY RUN — 未寫入資料庫，不計入預登記樣本</span>
+    <span class="badge ok">隨機性控制首跑：輸入凍結 + 逐字 prompt 模板</span>
+    <span class="badge">人格陣容（測試）：ICT · TJR · EmperorBTC</span>
+    <span class="badge">協議：R1 獨立盲判 → R2 結構化反駁，固定兩輪</span>
+  </div>
+</header>
+
+<!-- ================= BTC ================= -->
+<section class="asset" id="btc">
+  <div class="asset-head">
+    <h2 class="serif">BTC/USDT</h2>
+    <span class="px mono">快照 64,774 · 24H +0.00% · 資金費率 +0.0040%（7日均 +0.0057%）</span>
+  </div>
+
+  <div class="verdicts">
+    <div class="vcard">
+      <div class="vlabel">單人格基準 · ICT R1 盲判</div>
+      <div class="vdir bull">Bullish</div>
+      <div class="vmeta">confidence <b class="mono">60</b> / 100 —— 大區間深度 discount 找多；缺 COT/SMT/kill zone 自扣分</div>
+      <div class="confbar"><i class="b" style="width:60%"></i></div>
+    </div>
+    <div class="v-arrow" aria-hidden="true">→</div>
+    <div class="vcard">
+      <div class="vlabel">辯論後聚合 · 三人格 R2 信心加權</div>
+      <div class="vdir bull">Bullish</div>
+      <div class="vmeta">confidence_score <b class="mono">74</b> / 100 · 分歧度 <b class="mono">33%</b>（EmperorBTC 唯一非多方：Neutral 40）</div>
+      <div class="confbar"><i class="b" style="width:74%"></i><i class="n" style="width:26%"></i></div>
+    </div>
+  </div>
+
+  <h3 class="block">日線 K 線 · 近 60 日 · 各人格關鍵價位</h3>
+  <div class="chartbox" id="chart-btc">
+    <div class="ct"><span>BTC/USDT 日線（05-21 → 07-19 已收盤）</span><span class="hint">滑鼠移入可看 OHLC 與成交量</span></div>
+    <div class="chart-scroll"></div>
+    <div class="lvl-legend"></div>
+    <div class="tooltip"></div>
+  </div>
+
+  <div class="aggmath">
+    聚合算式（寫死於 engine/aggregate.py，裁判不得推翻）：
+    <span class="mono">Bullish = 60(ICT) + 52(TJR) = 112　Neutral = 40(EBTC)　→ 112 / 152 ≈ <b>74</b></span>
+    　·　R1 旁路聚合與末輪相同（Bullish 74）——R2 六家立場全數維持原判。信心標準差 8.22。
+  </div>
+
+  <h3 class="block">三人格立場 · R1 → R2</h3>
+  <div class="personas">
+    <div class="pcard ict">
+      <div class="pname"><span class="dot"></span>ICT <span class="tag">演算法 · 流動性磁鐵 · PD Array</span></div>
+      <div class="rounds"><span class="rpill bull">R1 Bullish 60</span><span class="rarrow">→</span><span class="rpill bull">R2 Bullish 60</span><span class="rnote">立場不變</span></div>
+      <div class="pcore">以 <b>126,199→57,800</b> 大區間錨定（EQ≈92k），64.7k 是 deep discount。7/1 掃 57,800 後日線 higher lows 一路墊高，教科書 market structure shift。draw on liquidity = <b>65,600/65,800</b> buy stops → 67,292。</div>
+      <details class="full"><summary>展開 R1 / R2 完整論述</summary>
+        <div class="rq"><b>R1（Bullish 60）：</b>這個盤不是隨機的。從126,199到57,800，equilibrium在92,000附近，現價64,000出頭deep in discount——折價區只找多，這是PD array紀律。7/1的sell stops已被掃過交割，之後日線一路墊高低點（61,306→62,537→63,886）。draw on liquidity：65,600與65,800上方buy stops，再上67,292。資金費率僅0.00004，多方沒過熱。if-then：回踩64,000-63,900守住看65,600→67,000；日線收破62,537則敘事失效。沒有COT、SMT對照、kill zone，四個維度只對齊兩個半，信心停在60。</div>
+        <div class="rq"><b>R2（正面回應 EmperorBTC，維持 60）：</b>他的量能測謊儀踩進一個事實坑：7/18、7/19是週六週日，加密貨幣週末量能腰斬是常態——拿假期盤的量跑測謊，測出來的是日曆，不是意圖。方法論核心矛盾：他把range劃在57.8k-65.6k說premium，但PD array紀律是高時間框架優先——126,199→57,800的range，equilibrium在92k，64.7k是deep discount；低時間框架的所謂premium正是演算法堆積buy stops的地方。量能派問「誰在買」，我問「演算法要去哪收割」。EmperorBTC沒有給我新事實，只給了被週末日曆污染的量能讀數和劃小了的range；人數同向也不構成加分。60就是60。</div>
+      </details>
+      <div class="falsi"><span class="fl">Falsifier</span><br>① 日線收盤跌破 62,537 → 轉 Neutral 偏空；② 上掃 65,600–65,800 後 4H 實體收回 64,000 之下並留向下 FVG（turtle soup）→ 改判 Bearish；③ 週一非週末時段放量下跌破 63,880 不收回 → EBTC 量能論轉為有效證據，下修信心。</div>
+    </div>
+
+    <div class="pcard tjr">
+      <div class="pname"><span class="dot"></span>TJR <span class="tag">Draw on liquidity · sweep→BOS→pullback</span></div>
+      <div class="rounds"><span class="rpill bull">R1 Bullish 52</span><span class="rarrow">→</span><span class="rpill bull">R2 Bullish 52</span><span class="rnote">立場不變</span></div>
+      <div class="pcore">週線掃 58,115/57,800 清光 sell-side 後連三週收高；7/14 大陽 BOS 打穿 64,700。上方 <b>64,9xx–65,1xx</b> equal highs（今日盤中已舔）+ 65,600 + 67,292 是整片低阻力 buy-side。<b>自認弱點</b>：64,774 已近 74k→57.8k 腿 EQ（≈65.9k），premium 端追逆週線的 draw。</div>
+      <details class="full"><summary>展開 R1 / R2 完整論述</summary>
+        <div class="rq"><b>R1（Bullish 52）：</b>先講 draw on liquidity：週線 74k 殺到 57,800，6/22 掃 58,115、6/29 掃 57,800——sell-side 清乾淨後連三週收高，低點止損燃料吃完了。日線 7/1 後一路 higher lows，7/14 大陽 BOS 打穿 64,700。上面 equal highs、65,600、65,800、67,292 全是沒掃過的舊高。但不 marry my bias：週線還是下降趨勢，64,774 快頂到 74k→57.8k 腿的 equilibrium（約 65.9k）——HTF conflict 誠實扣分。if 掃 65,600 守住、回踩不破 63,880 看 65.8k-67.3k；if 掃完直接反轉 BOS 往下就放手。confidence 就只配 52。</div>
+        <div class="rq"><b>R2（正面回應 EmperorBTC，維持 52）：</b>你拿 7/18、7/19 當量能證據——那是週六週日，週末量本來就腰斬，這是拿 weekend artifact 當測謊儀讀數；真正該看 7/14 那根 BOS 大陽，量 20.5k 高於均量。你說 range 中上段是 noise——我看的不是 range 位置是 draw on liquidity。你自己都說 57.8k 探進你的 accumulation 區、週線連三綠——你的長線腳本跟我同方向，你只是用 trading/investing 二分把手綁起來。維持 52：Emperor 最有殺傷力的部分我 R1 已扣過分，重複扣分是雙重計價；人數共識不是理由。</div>
+      </details>
+      <div class="falsi"><span class="fl">Falsifier</span><br>① 日線收盤跌破 62,537 → 轉 Neutral 偏 Bearish；② 掃過 65,600 後 LTF 立刻 BOS 向下並跌破 63,880 且日線無法收回 → 翻 Bearish 看 61.8k–62.3k 甚至 57.8k；③ 平日放量長陰吞掉 7/14 BOS 陽線實體（日線收破 62,272）→ 棄多。</div>
+    </div>
+
+    <div class="pcard ebtc">
+      <div class="pname"><span class="dot"></span>EmperorBTC <span class="tag">拍賣理論 · 量價測謊 · 區間極值</span></div>
+      <div class="rounds"><span class="rpill neut">R1 Neutral 40</span><span class="rarrow">→</span><span class="rpill neut">R2 Neutral 40</span><span class="rnote">立場不變（唯一非多方）</span></div>
+      <div class="pcore">週線 staircase down 未變，don't fight the tide。balance 區間 57.8k–65.6/67.3k，現價在 premium 側又未達 extremity——<b>everything in between is noise</b>。7/18–19 日量僅 8k，price up volume down。反問多方：「<b>磁鐵不需要量，但 acceptance 需要</b>——今天舔到 65.1k 為何縮量退回？」</div>
+      <details class="full"><summary>展開 R1 / R2 完整論述</summary>
+        <div class="rq"><b>R1（Neutral 40）：</b>週線從 126k staircase down，HTF 趨勢仍向下。balance 區間 57.8k 到 65.6k-67.3k，mid 61.7k-62.5k，現價 64.7k 在 premium 側又沒到 extremity。volume 測謊：7/18-19 陰跌式上飄日量只有 8k——price up, volume down，傾向當 correction。57.8k 探進 50k-58k accumulation 區上緣——對 investing 有意思，但 trading 和 investing 是兩回事。if 帶量 reclaim 65.6k 站穩 67.3k 才認真看上；if 跌回 61.8k-62.3k 之下大概率回測 57.8k。逆勢、無量、range 中上段——我選擇等。</div>
+        <div class="rq"><b>R2（正面回應 ICT/TJR，維持 40）：</b>掃低收回在我框架裡就是 range low 的 SFP——而我的規則：SFP 只在逆勢方向可靠，bearish HTF 裡 range low 的 SFP 恰恰是低機率那種。7/14 突破日量 20.5k 高於均量，這是他們論點裡最有 evidence 的一塊，我不歪曲；但之後 acceptance 沒有出現。反證情境：如果 65.6k 上方真有磁鐵般的必然性，為什麼今天盤中舔到 65.1k 就縮量退回？磁鐵不需要量，但 acceptance 需要。用 92k 大區間中點說這裡是 discount，對短線 trading 沒有操作意義。二比一不構成改判理由，trading is not a team sport。</div>
+      </details>
+      <div class="falsi"><span class="fl">Falsifier</span><br>① 轉 Bullish——日線帶量（&gt;18k–20k）實體收上 65.6k 且回測 64.7k–65k 守住，或連續日線 acceptance 在 67.3k 之上；② 轉 Bearish——日線放量跌破 61.8k–62.3k 並在反抽時 role reversal 成阻力 → 看 57.8k–58k。</div>
+    </div>
+  </div>
+
+  <div class="debate">
+    <div class="dbox"><h4>三方其實同意的事</h4><ul>
+      <li><b>65,600–65,800 是決勝位</b>：多方視為必經的 draw，EBTC 視為帶量 reclaim 的轉多門檻——三家 falsifier 都掛在同一帶。</li>
+      <li>週線大結構仍向下，全員壓低信心（60/52/40，無人過 65）。</li>
+      <li>62,537 / 61.8k–62.3k 下方失守 = 全員劇本重估。</li>
+    </ul></div>
+    <div class="dbox"><h4>真正的分歧點</h4><ul>
+      <li><b>週末量能的證據地位</b>（本日核心攻防）：EBTC 以 7/18–19 量縮論證無 acceptance；ICT/TJR 反擊「拿假期量跑測謊測出來的是日曆」；EBTC 補問「舔 65.1k 為何縮量退回？」</li>
+      <li><b>Range 錨定三個版本</b>：ICT 用 126k→57.8k（deep discount）；TJR 用 74k→57.8k（自認 premium 追價）；EBTC 用 7 月 balance（premium）——連同為多方的兩家都各執一詞。</li>
+      <li><b>SFP 的方向性</b>：EBTC「逆勢 HTF 裡 range low 的 SFP 是低機率訊號」正面拆多方的掃低敘事——三次 dry-run 以來對 sweep 敘事最結構化的攻擊。</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ================= ETH ================= -->
+<section class="asset" id="eth">
+  <div class="asset-head">
+    <h2 class="serif">ETH/USDT</h2>
+    <span class="px mono">快照 1,875 · 24H +0.85% · 資金費率 +0.0041%（7日均 +0.0039%）</span>
+  </div>
+
+  <div class="verdicts">
+    <div class="vcard">
+      <div class="vlabel">單人格基準 · ICT R1 盲判</div>
+      <div class="vdir bull">Bullish</div>
+      <div class="vmeta">confidence <b class="mono">58</b> / 100 —— 1,837 之上守住看 1,946.5；破 1,803 作廢</div>
+      <div class="confbar"><i class="b" style="width:58%"></i></div>
+    </div>
+    <div class="v-arrow" aria-hidden="true">→</div>
+    <div class="vcard">
+      <div class="vlabel">辯論後聚合 · 三人格 R2 信心加權</div>
+      <div class="vdir bull">Bullish</div>
+      <div class="vmeta">confidence_score <b class="mono">100</b> / 100 · 分歧度 <b class="mono">0%</b>（三家全數看多，信心 58/50/45）</div>
+      <div class="confbar"><i class="b" style="width:100%"></i></div>
+    </div>
+  </div>
+
+  <h3 class="block">日線 K 線 · 近 60 日 · 各人格關鍵價位</h3>
+  <div class="chartbox" id="chart-eth">
+    <div class="ct"><span>ETH/USDT 日線（05-21 → 07-19 已收盤）</span><span class="hint">滑鼠移入可看 OHLC 與成交量</span></div>
+    <div class="chart-scroll"></div>
+    <div class="lvl-legend"></div>
+    <div class="tooltip"></div>
+  </div>
+
+  <div class="aggmath">
+    聚合算式：<span class="mono">Bullish = 58(ICT) + 50(TJR) + 45(EBTC) = 153　→ 153 / 153 = <b>100</b></span>
+    　·　R1 旁路聚合與末輪相同。信心標準差 5.35。注意：100 是勝方得分占比，三家自身信心僅 45–58，共同壓低因子＝逆週線大趨勢。
+  </div>
+
+  <h3 class="block">三人格立場 · R1 → R2</h3>
+  <div class="personas">
+    <div class="pcard ict">
+      <div class="pname"><span class="dot"></span>ICT <span class="tag">演算法 · 流動性磁鐵 · PD Array</span></div>
+      <div class="rounds"><span class="rpill bull">R1 Bullish 58</span><span class="rarrow">→</span><span class="rpill bull">R2 Bullish 58</span><span class="rnote">立場不變</span></div>
+      <div class="pcore">週線 1,505.68 長下影掃 sell stops 後連三週收陽＝清算後 repricing。現價 1,875 坐在 <b>1,803–1,946.52 dealing range 的 equilibrium</b>，4H 在 1,877–1,879 堆了一排 equal highs——磁鐵在頭頂。draw = 1,946.52 → 2,009–2,021。</div>
+      <details class="full"><summary>展開 R1 / R2 完整論述</summary>
+        <div class="rq"><b>R1（Bullish 58）：</b>週線從 4,956 被遞送到 1,505.68，長下影掃掉 sell stops 後連三根週線收陽——sell-side 清空後的 repricing。日線 7/14-15 帶量 displacement 打到 1,946.52，回踩 1,803 吃進上漲腿 discount 並守住，higher low 成立。現價正坐 dealing range equilibrium。if 日線守 1,837 之上看 1,946；破 1,803 收下面就作廢。沒有 kill zone、COT、BTC SMT 對照，信心 58。</div>
+        <div class="rq"><b>R2（正面回應 EmperorBTC，維持 58）：</b>最痛的一刀是他用我自己的紀律打我：1,875 在 1,570-1,946 swing 的 mid 之上算 premium。回應：premium/discount 取決於錨定哪個 dealing range，這有層級——演算法當下操作的是 7/14-15 displacement 建立的 1,803→1,946.52，現價正坐 equilibrium；他挑的 1,570-1,946 是中間層級，拿次要 range 否決主要 range。週線熊結構 R1 已承認並扣分——重複扣分不叫嚴謹，叫被嗓門嚇到。1,946 上影線是 engineered liquidity run：如果只是供給區，何必先突破前高再回頭？維持 58。</div>
+      </details>
+      <div class="falsi"><span class="fl">Falsifier</span><br>① 日線收盤跌破 1,803 → 翻空看 1,750 以下 sell-side；② 上掃 1,891–1,896 甚至 1,946.52 後帶 displacement 跌破 1,837 且日線收盤確認（turtle soup）→ 改判 Bearish。</div>
+    </div>
+
+    <div class="pcard tjr">
+      <div class="pname"><span class="dot"></span>TJR <span class="tag">Draw on liquidity · sweep→BOS→pullback</span></div>
+      <div class="rounds"><span class="rpill bull">R1 Bullish 50</span><span class="rarrow">→</span><span class="rpill bull">R2 Bullish 50</span><span class="rnote">立場不變</span></div>
+      <div class="pcore">1,875.25 vs 1,803–1,946 腿的中線 1,874.75——「<b>the math does not lie</b>，這是 equilibrium 正中間的教科書 continuation 落點，不是 premium 追多」。draw = 1,891–1,896 equal highs → 1,946 → 2,000–2,021。自認弱點：週線大熊結構 + 4H 缺新鮮三層堆疊。</div>
+      <details class="full"><summary>展開 R1 / R2 完整論述</summary>
+        <div class="rq"><b>R1（Bullish 50）：</b>daily 從 6/26 的 1512 一路 higher low higher high，7/15 打 1946.52 後回踩 1803 沒破結構，現價 1875 坐 1803-1946 腿的 equilibrium 正中間。draw：7/14 高點 1896 + 今日盤中 1891 形成 equal highs，再上 1946 未回收。週末量縮、費率近中性，安靜 grind up 通常是往流動性走的前奏。扣分：weekly 大熊結構、4H 沒有新鮮三層 confluence、沒有 BTC SMT。if 掃 1891-1896 守住看 1946 甚至 2000-2021；if 掃完反手破 1840 再破 1803 翻空看 1750-1737。</div>
+        <div class="rq"><b>R2（正面回應 EmperorBTC，維持 50）：</b>他兩刀最狠：1875 在 1570-1946 swing 中線之上算 premium；1946 上影線「沒有人在獵你」。位置那刀：看你量哪條 leg——他量 1570 起漲的大腿，我量最近一次有效 dealing range 1803-1946，中線 1874.75、現價 1875.25，這是 equilibrium 正中間，the math does not lie。獵殺那刀：叫它供給區還是流動性，結局指向同一方向——他自己的測謊儀都說回檔是休息不是反轉。維持 50：沒有新事實，三人同向不構成加分，信心跟著證據走，不跟著房間裡的音量走。</div>
+      </details>
+      <div class="falsi"><span class="fl">Falsifier</span><br>① 掃 1,891–1,896 後不守住，4H 反手破 1,840 且日線收破 1,803 → 翻 Bearish 看 1,750–1,737；② 不掃高直接帶量（日量 &gt;35 萬）跌破 1,803 → 翻空；③ 收復 1,946 後上調信心。</div>
+    </div>
+
+    <div class="pcard ebtc">
+      <div class="pname"><span class="dot"></span>EmperorBTC <span class="tag">拍賣理論 · 量價測謊 · 區間極值</span></div>
+      <div class="rounds"><span class="rpill bull">R1 Bullish 45</span><span class="rarrow">→</span><span class="rpill bull">R2 Bullish 45</span><span class="rnote">立場不變</span></div>
+      <div class="pcore">兩次探底（1505/1512）賣壓遞減＝拍賣從 imbalance 轉回 balance。<b>漲勢通過測謊</b>：7/14-15 推升有量（368k/319k）、7/16-19 回檔縮量（271k→92k）。1,800–1,840 role reversal 支撐。弱點自認：swing mid 之上算 premium、逆週線 counter-trend rally，不追價。</div>
+      <details class="full"><summary>展開 R1 / R2 完整論述</summary>
+        <div class="rq"><b>R1（Bullish 45）：</b>週線 staircase down，但 6 月初 1505 帶大量恐慌拋售後 6/22 回測 1512 沒創新低——兩次探底、賣壓量能遞減，拍賣從 imbalance 轉回 balance。1570→1946 推升有 above-average volume 背書，回檔量能萎縮——教科書 correction。1800-1840 是放量突破區 role reversal 成支撐，price has a memory。弱點：swing mid 之上算 premium、週線逆勢。if 回踩 1800-1840 守住且量不放大看 1946；if 帶量破 1800 退回中性偏空。</div>
+        <div class="rq"><b>R2（正面回應 TJR 反向情境，維持 45）：</b>這輪沒人跟我對立，我挑最強 bear case——TJR 自己講的「掃 1891-1896 後反手破 1840 再破 1803 = premium 出貨翻空」。用我的框架檢驗這情境成立：逆勢環境裡 range high 的帶量 SFP 正是我自己會認的好空單，這不是我能嘴硬否定的敘事。但今天證據還沒站在那邊：推升有量、回檔縮量、role reversal 支撐被接走——出貨要有出貨的量，目前沒有。那是「未來可能的證據」不是「現在已有的證據」——one is hope, the other is evidence。維持 45：維持原判是紀律，不是固執。</div>
+      </details>
+      <div class="falsi"><span class="fl">Falsifier</span><br>① 掃 1,891–1,946 後帶量 SFP（長上影+顯著放量）且跌回 1,840 之下收盤 → 退回 Neutral 偏空；② 日線帶量（顯著高於 250k 級）跌破 1,800–1,803 → 轉 Bearish；③ 回檔跌破 1,840 時量能放大而非萎縮 → 至少降信心退回 Neutral。</div>
+    </div>
+  </div>
+
+  <div class="debate">
+    <div class="dbox"><h4>三方共同錨點</h4><ul>
+      <li><b>1,803</b> 全員共同失效點；<b>1,946.52</b> 全員第一目標——if-then 幾乎同一張圖。</li>
+      <li>全員承認逆週線大趨勢並壓低信心（58/50/45）。</li>
+      <li>TJR 的「掃高後破 1,840→1,803 = 出貨」情境被三家不約而同納入 falsifier——本日 ETH 辯論的最大公約數。</li>
+    </ul></div>
+    <div class="dbox"><h4>分歧點（同向下的框架攻防）</h4><ul>
+      <li><b>Equilibrium 之爭</b>：TJR/ICT 用 1,803–1,946 腿（現價=正中間）；EBTC 用 1,570–1,946 大腿（現價=premium）——同樣的價格，三家給出「均衡/折價/溢價」三種定位。</li>
+      <li><b>1,946 上影線的定性</b>：engineered liquidity run（ICT）vs 自然拍賣測試供給（EBTC）——雙方都承認對方的價格路徑，分歧只在敘事歸因。</li>
+      <li>EBTC 在 R2 主動用自己框架驗證對手的反向情境並承認其成立——反駁協議在同向情境下依然產生實質自我審查。</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ================= NOTES ================= -->
+<section class="notes">
+  <h2 class="serif">方法論備註</h2>
+  <ol>
+    <li><b>單人格 vs 辯論後口徑：</b>單人格基準取正式預登記唯一生效人格（ICT）R1 盲判自身信心；辯論後取三人格 R2 信心加權聚合。兩欄數字不可直接互比，可比的是<b>方向</b>與<b>分歧結構</b>。</li>
+    <li><b>隨機性控制首跑：</b>輸入已凍結（同日重跑必須重用 <span class="mono">data/market_context/2026-07-20_*.txt</span>）、R1/R2 prompt 使用逐字模板。今日 EBTC（BTC）Neutral 40 與昨日兩次（Bearish 55 / Neutral 30）不同，但今日是不同判斷日、不同數據，屬正常判斷更新；真正的抽樣噪音量測需在同一份凍結輸入上重複跑（穩定性稽核，未執行）。</li>
+    <li><b>隔離協議：</b>R1 各 subagent 彼此不知對方存在；R2 僅傳遞對手 direction/confidence/reasoning 三欄。</li>
+    <li><b>本頁為 dry-run：</b>record / finalize 均未執行，資料庫零寫入。正式樣本僅 ICT 單人格生效；TJR / EmperorBTC 轉正須依預登記 §8 增補。</li>
+    <li><b>回測地位：</b>無 outcome，是辯論日報告非回測報告。n≥30 才出描述性報告，n≥60 才做統計檢定。</li>
+    <li><b>觀察（供消融分析）：</b>連續三次 dry-run R2 立場零翻轉（18 人次中 2 次下修信心、16 次不變）。辯論的可觀察加值持續集中在 falsifier 品質、對手論點的正面回應、與分歧度訊號本身。</li>
+  </ol>
+</section>
+
+<footer class="disc"><b>免責聲明</b>　此為研究性統計工具的輸出，非投資建議。所有人格為基於公開影片逐字稿蒸餾的角色模擬，非本人親自審閱或授權；聚合結果為機械計算，不代表任何真實交易者的觀點。</footer>
+</div>
+
+<script>
+const DATA = {"BTC":[["05-21",77552.24,78200.0,76719.47,77615.52,11318.25841],["05-22",77615.52,77900.0,75359.18,75539.5,11272.36134],["05-23",75539.5,77404.18,74289.6,76752.01,15086.88814],["05-24",76752.0,77543.15,76108.0,77064.96,8398.00156],["05-25",77064.96,77905.52,76914.25,77322.01,7672.32197],["05-26",77322.01,78080.0,75677.97,75930.01,16953.47629],["05-27",75930.01,76174.15,74243.99,74449.3,16877.77483],["05-28",74449.31,74590.77,72582.82,73617.51,21274.02026],["05-29",73617.52,74514.1,72512.49,73460.78,18686.74141],["05-30",73460.78,74143.76,73216.0,73884.38,7515.40909],["05-31",73884.38,74275.66,73400.0,73674.39,6986.45707],["06-01",73674.39,74092.0,70686.68,71408.9,23921.09184],["06-02",71408.9,71408.9,66193.0,66760.83,32858.19586],["06-03",66760.84,67516.0,64092.49,64142.75,30138.3065],["06-04",64142.75,64764.32,61383.56,63885.99,43577.17571],["06-05",63885.99,63978.0,59130.91,61056.47,55027.28807],["06-06",61056.47,61530.05,59500.0,60884.62,19795.58877],["06-07",60884.62,64234.68,60746.0,63332.01,26612.10443],["06-08",63332.01,64200.0,62408.0,63085.99,23053.38624],["06-09",63086.0,63526.01,60780.0,61730.0,21636.21959],["06-10",61730.0,62857.99,60755.0,61510.99,15998.71652],["06-11",61510.99,63933.02,61510.99,63625.99,17380.94642],["06-12",63626.0,64394.44,62829.81,63580.01,16397.0524],["06-13",63580.0,64762.77,63418.66,64458.01,9960.74163],["06-14",64458.01,65800.0,63678.83,65746.45,13203.03375],["06-15",65746.45,67292.15,65354.0,66328.74,18559.80102],["06-16",66328.74,66992.0,65360.92,65675.01,14302.05801],["06-17",65675.02,66445.93,63915.77,64509.4,19048.65409],["06-18",64509.4,64806.0,62272.07,62958.01,16935.59661],["06-19",62958.01,63666.0,62316.44,63543.91,14247.424],["06-20",63543.9,64388.0,63184.21,64298.01,9522.10324],["06-21",64298.01,64588.0,63270.0,63311.99,8034.66333],["06-22",63312.0,65622.83,63312.0,64020.01,15423.10851],["06-23",64020.01,64275.38,61938.0,62734.57,20222.99292],["06-24",62734.57,63239.06,59102.7,61077.99,30678.28543],["06-25",61078.0,61962.4,58115.01,59794.0,30386.00694],["06-26",59794.64,60759.99,58337.0,60097.27,27403.55723],["06-27",60097.27,60941.17,59855.16,60029.0,9587.22916],["06-28",60029.01,60545.01,58905.0,59577.01,8907.13796],["06-29",59577.01,60780.57,58900.01,60260.21,20203.14178],["06-30",60260.2,60276.54,58201.0,58624.71,19639.82787],["07-01",58624.71,61334.0,57800.19,60024.0,25093.44662],["07-02",60024.0,62200.0,59588.0,61560.0,21382.14163],["07-03",61560.0,62979.86,61248.86,62583.26,14048.98627],["07-04",62583.26,63461.99,62328.24,63144.01,9139.8274],["07-05",63144.01,63999.0,62436.59,63650.0,9172.07758],["07-06",63650.01,64700.0,61306.84,64042.02,21435.28437],["07-07",64042.93,64314.0,62671.39,63363.99,16834.20823],["07-08",63364.0,63761.99,61544.56,62290.0,18620.09796],["07-09",62290.01,63500.0,61705.29,63230.0,16742.80672],["07-10",63230.01,64692.83,62926.01,64161.72,17589.00122],["07-11",64161.72,64504.11,63819.0,63819.0,9151.97432],["07-12",63819.01,64290.11,63640.83,63780.0,13914.83703],["07-13",63780.0,64425.0,61824.97,62334.52,21682.50204],["07-14",62334.52,65100.0,62272.2,65043.98,20552.41384],["07-15",65043.99,65600.0,64485.0,64756.28,18401.89741],["07-16",64756.28,64997.52,63748.74,63830.2,18764.52679],["07-17",63830.2,64387.99,62537.56,63931.67,18189.89389],["07-18",63931.67,64865.0,63886.65,64834.22,8031.18012],["07-19",64834.21,64967.25,64280.0,64722.54,8379.91474]],"ETH":[["05-21",2129.44,2157.5,2105.15,2133.76,232889.1117],["05-22",2133.77,2141.39,2057.79,2065.85,221783.2548],["05-23",2065.86,2149.95,2009.3,2117.68,350546.2289],["05-24",2117.69,2132.14,2063.0,2099.85,197748.7605],["05-25",2099.86,2141.98,2092.26,2113.01,166428.5979],["05-26",2113.01,2140.49,2055.06,2073.77,282553.3096],["05-27",2073.77,2097.4,2016.0,2024.84,267963.1573],["05-28",2024.83,2030.0,1967.0,2009.9,363834.9211],["05-29",2009.89,2046.59,1976.48,2014.54,283145.695],["05-30",2014.54,2032.0,2002.0,2022.44,97977.5349],["05-31",2022.44,2038.0,1993.75,2007.01,163735.4958],["06-01",2007.02,2021.5,1956.04,2006.73,374428.2839],["06-02",2006.73,2006.78,1839.02,1859.84,556885.5418],["06-03",1859.84,1893.07,1769.62,1813.05,584760.4818],["06-04",1813.05,1820.5,1717.28,1770.77,648306.1051],["06-05",1770.76,1774.99,1540.19,1583.4,1257013.1608],["06-06",1583.4,1601.22,1505.68,1569.69,558458.3672],["06-07",1569.68,1721.93,1564.1,1690.51,458280.5909],["06-08",1690.5,1714.5,1645.0,1690.49,480027.3121],["06-09",1690.48,1696.88,1614.02,1639.52,384147.2349],["06-10",1639.52,1667.96,1603.44,1621.59,290791.2819],["06-11",1621.6,1693.59,1621.6,1673.46,278507.7204],["06-12",1673.46,1691.07,1652.09,1666.41,201888.0102],["06-13",1666.42,1697.28,1662.2,1681.18,106751.6077],["06-14",1681.19,1732.28,1654.9,1725.62,178009.9541],["06-15",1725.63,1849.54,1709.66,1796.13,464135.2553],["06-16",1796.14,1839.77,1758.0,1792.99,353577.549],["06-17",1793.0,1810.21,1725.34,1750.6,334498.0575],["06-18",1750.61,1762.99,1671.79,1711.11,312480.9656],["06-19",1711.11,1719.51,1679.11,1711.19,165078.1984],["06-20",1711.18,1749.55,1704.06,1741.08,159791.8211],["06-21",1741.08,1741.45,1702.0,1706.94,123762.4689],["06-22",1706.94,1779.9,1706.94,1728.19,262657.182],["06-23",1728.19,1736.25,1635.65,1667.13,248262.012],["06-24",1667.13,1693.67,1552.95,1622.17,355728.3403],["06-25",1622.18,1660.54,1532.9,1567.84,440671.005],["06-26",1567.86,1594.7,1512.0,1578.68,423691.4393],["06-27",1578.68,1611.02,1562.86,1573.99,131592.3598],["06-28",1574.0,1588.82,1548.37,1571.96,140181.1417],["06-29",1571.96,1637.58,1550.43,1613.07,309968.9748],["06-30",1613.07,1614.41,1550.2,1572.01,222057.2042],["07-01",1572.0,1646.26,1552.92,1609.58,306536.311],["07-02",1609.59,1725.0,1597.22,1700.57,373453.5082],["07-03",1700.57,1775.78,1694.72,1758.21,244416.868],["07-04",1758.22,1807.65,1744.09,1780.64,190880.1497],["07-05",1780.64,1808.0,1748.79,1785.65,389673.4191],["07-06",1785.65,1833.4,1728.95,1799.56,305879.3304],["07-07",1799.56,1813.16,1757.57,1771.45,241536.7253],["07-08",1771.45,1785.0,1713.44,1743.54,225231.2254],["07-09",1743.55,1762.36,1721.93,1745.16,173705.2572],["07-10",1745.17,1812.0,1737.68,1796.85,215605.8045],["07-11",1796.85,1830.0,1786.58,1787.76,178703.4183],["07-12",1787.76,1826.92,1779.46,1806.8,141072.9835],["07-13",1806.8,1846.0,1750.2,1776.72,295031.6198],["07-14",1776.71,1896.14,1773.41,1891.87,368913.772],["07-15",1891.87,1946.52,1864.38,1917.86,319800.9693],["07-16",1917.86,1929.48,1857.54,1864.71,271689.0863],["07-17",1864.71,1871.08,1803.05,1841.93,253027.7556],["07-18",1841.94,1867.58,1837.58,1862.61,92597.9232],["07-19",1862.61,1879.38,1851.71,1872.23,143922.6662]]};
+
+const CONF = {
+  btc: {
+    key: "BTC", box: "#chart-btc", dec: 0,
+    levels: [
+      {type:"line", at:67292, color:"var(--bull)", label:"67,292 次級目標（ICT/TJR）"},
+      {type:"zone", from:65600, to:65800, color:"var(--accent)", label:"65,600–65,800 buyside 磁鐵（多方目標｜EBTC 帶量 reclaim 門檻）"},
+      {type:"zone", from:63880, to:64000, color:"var(--ict)", label:"63,880–64,000 4H 回踩加多區（ICT/TJR）"},
+      {type:"line", at:62537, color:"var(--bear)", label:"62,537 多方共同失效點（日線收盤破 → 劇本作廢）"},
+      {type:"zone", from:61800, to:62300, color:"var(--ebtc)", label:"61.8k–62.3k 區間中值（EBTC：放量跌破 → 看 57.8k）"},
+      {type:"zone", from:57800, to:58200, color:"var(--ebtc)", label:"57.8k–58.2k range low / equal lows（7/1 已掃）"}
+    ],
+    events: [
+      {date:"07-01", side:"below", color:"var(--bull)", label:"掃 57,800 sell side"},
+      {date:"07-14", side:"above", color:"var(--bull)", label:"帶量 BOS"},
+      {date:"07-17", side:"below", color:"var(--bull)", label:"HL 62,537"}
+    ]
+  },
+  eth: {
+    key: "ETH", box: "#chart-eth", dec: 0,
+    levels: [
+      {type:"zone", from:2000, to:2021, color:"var(--bull)", label:"2,000–2,021 舊高流動性（次級目標）"},
+      {type:"line", at:1946.52, color:"var(--bull)", label:"1,946.52 共同第一目標（range high）"},
+      {type:"zone", from:1891, to:1896, color:"var(--accent)", label:"1,891–1,896 equal highs（最近 buy-side draw，今日已觸及）"},
+      {type:"zone", from:1800, to:1840, color:"var(--ebtc)", label:"1,800–1,840 role reversal 支撐（EBTC）"},
+      {type:"line", at:1803.05, color:"var(--bear)", label:"1,803 全員共同失效點（日線收盤破 → 劇本作廢）"},
+      {type:"line", at:1512, color:"var(--ict)", label:"1,505 / 1,512 equal lows（6 月已掃，行情起點）"}
+    ],
+    events: [
+      {date:"06-05", side:"below", color:"var(--ict)", label:"掃 1505"},
+      {date:"06-26", side:"below", color:"var(--ict)", label:"二測 1512"},
+      {date:"07-14", side:"above", color:"var(--bull)", label:"放量 BOS"},
+      {date:"07-17", side:"below", color:"var(--bull)", label:"回踩 1803"}
+    ]
+  }
+};
+
+const NS = "http://www.w3.org/2000/svg";
+function el(t, at){ const e = document.createElementNS(NS, t); for(const k in at) e.setAttribute(k, at[k]); return e; }
+function fmt(n, dec){ return n.toLocaleString("en-US", {maximumFractionDigits: dec}); }
+
+function draw(cfg){
+  const rows = DATA[cfg.key];
+  const box = document.querySelector(cfg.box);
+  const holder = box.querySelector(".chart-scroll");
+  const tooltip = box.querySelector(".tooltip");
+  const legend = box.querySelector(".lvl-legend");
+  holder.innerHTML = "";
+
+  const W = 960, PH = 320, VH = 64, GAP = 14, ML = 10, MR = 74, MT = 26, MB = 22;
+  const H = MT + PH + GAP + VH + MB;
+  const iw = W - ML - MR, n = rows.length, step = iw / n, cw = Math.max(3, step * 0.62);
+
+  let lo = Infinity, hi = -Infinity, vmax = 0;
+  for(const r of rows){ lo = Math.min(lo, r[3]); hi = Math.max(hi, r[2]); vmax = Math.max(vmax, r[5]); }
+  for(const lv of cfg.levels){ const a = lv.type==="zone"?lv.from:lv.at, b = lv.type==="zone"?lv.to:lv.at;
+    lo = Math.min(lo, a*0.999); hi = Math.max(hi, b*1.001); }
+  const pad = (hi-lo)*0.04; lo -= pad; hi += pad;
+  const y = p => MT + PH - (p-lo)/(hi-lo)*PH;
+  const x = i => ML + i*step + step/2;
+  const vy = v => MT + PH + GAP + VH - (v/vmax)*VH;
+
+  const svg = el("svg", {class:"kchart", viewBox:`0 0 ${W} ${H}`, role:"img",
+    "aria-label": cfg.key + " 日線K線圖，含各人格關鍵價位標註"});
+
+  const ticks = 5;
+  for(let t=0;t<=ticks;t++){
+    const p = lo + (hi-lo)*t/ticks, yy = y(p);
+    svg.appendChild(el("line",{x1:ML,x2:W-MR,y1:yy,y2:yy,stroke:"var(--line-soft)","stroke-width":1}));
+    const tx = el("text",{x:W-MR+8,y:yy+4,"font-size":11,fill:"var(--ink-3)",class:"mono"});
+    tx.textContent = fmt(Math.round(p), 0); svg.appendChild(tx);
+  }
+  for(let i=0;i<n;i+=10){
+    const tx = el("text",{x:x(i),y:H-6,"font-size":10.5,fill:"var(--ink-3)","text-anchor":"middle",class:"mono"});
+    tx.textContent = rows[i][0]; svg.appendChild(tx);
+  }
+
+  for(const lv of cfg.levels){ if(lv.type!=="zone") continue;
+    svg.appendChild(el("rect",{x:ML,y:y(lv.to),width:iw,height:Math.max(2,y(lv.from)-y(lv.to)),
+      fill:lv.color,opacity:0.10}));
+  }
+
+  for(let i=0;i<n;i++){ const r = rows[i];
+    svg.appendChild(el("rect",{x:x(i)-cw/2,y:vy(r[5]),width:cw,height:MT+PH+GAP+VH-vy(r[5]),
+      fill:r[4]>=r[1]?"var(--bull)":"var(--bear)",opacity:0.35,rx:1}));
+  }
+  const vlab = el("text",{x:ML,y:MT+PH+GAP+10,"font-size":10.5,fill:"var(--ink-3)"});
+  vlab.textContent = "Volume"; svg.appendChild(vlab);
+
+  for(let i=0;i<n;i++){ const r = rows[i], up = r[4]>=r[1], c = up?"var(--bull)":"var(--bear)";
+    svg.appendChild(el("line",{x1:x(i),x2:x(i),y1:y(r[2]),y2:y(r[3]),stroke:c,"stroke-width":1.2}));
+    const top = y(Math.max(r[1],r[4])), bh = Math.max(1.5, Math.abs(y(r[1])-y(r[4])));
+    svg.appendChild(el("rect",{x:x(i)-cw/2,y:top,width:cw,height:bh,fill:c,rx:1}));
+  }
+
+  for(const lv of cfg.levels){ if(lv.type!=="line") continue;
+    svg.appendChild(el("line",{x1:ML,x2:W-MR,y1:y(lv.at),y2:y(lv.at),stroke:lv.color,
+      "stroke-width":1.6,"stroke-dasharray":"6 4",opacity:0.85}));
+  }
+
+  for(const ev of cfg.events){
+    const i = rows.findIndex(r=>r[0]===ev.date); if(i<0) continue;
+    const r = rows[i], above = ev.side==="above";
+    const yy = above ? y(r[2])-8 : y(r[3])+8;
+    const pts = above ? `${x(i)-5},${yy-8} ${x(i)+5},${yy-8} ${x(i)},${yy}`
+                      : `${x(i)-5},${yy+8} ${x(i)+5},${yy+8} ${x(i)},${yy}`;
+    svg.appendChild(el("polygon",{points:pts,fill:ev.color}));
+    const tx = el("text",{x:x(i),y:above?yy-13:yy+21,"font-size":10.5,fill:"var(--ink-2)","text-anchor":"middle","font-weight":600});
+    tx.textContent = ev.label; svg.appendChild(tx);
+  }
+
+  const cross = el("line",{x1:0,x2:0,y1:MT,y2:MT+PH,stroke:"var(--ink-3)","stroke-width":1,"stroke-dasharray":"3 3",opacity:0});
+  svg.appendChild(cross);
+  const hot = el("rect",{x:ML,y:MT,width:iw,height:PH+GAP+VH,fill:"transparent"});
+  svg.appendChild(hot);
+
+  hot.addEventListener("mousemove", e=>{
+    const rect = svg.getBoundingClientRect();
+    const sx = (e.clientX-rect.left) * (W/rect.width);
+    let i = Math.round((sx-ML)/step-0.5); i = Math.max(0, Math.min(n-1, i));
+    const r = rows[i];
+    cross.setAttribute("x1",x(i)); cross.setAttribute("x2",x(i)); cross.setAttribute("opacity",0.6);
+    const chg = ((r[4]/r[1]-1)*100).toFixed(2);
+    tooltip.innerHTML = `<b>${r[0]}</b>　<span style="color:${r[4]>=r[1]?'var(--bull)':'var(--bear)'}">${chg>0?'+':''}${chg}%</span><br>`+
+      `O ${fmt(r[1],cfg.dec)}　H ${fmt(r[2],cfg.dec)}<br>L ${fmt(r[3],cfg.dec)}　C ${fmt(r[4],cfg.dec)}<br>Vol ${fmt(Math.round(r[5]),0)}`;
+    tooltip.style.opacity = 1;
+    const bx = box.getBoundingClientRect();
+    let tl = e.clientX-bx.left+16, tt = e.clientY-bx.top-10;
+    if(tl + 190 > bx.width) tl -= 210;
+    tooltip.style.left = tl+"px"; tooltip.style.top = tt+"px";
+  });
+  hot.addEventListener("mouseleave", ()=>{ tooltip.style.opacity = 0; cross.setAttribute("opacity",0); });
+
+  holder.appendChild(svg);
+
+  legend.innerHTML = "";
+  for(const lv of cfg.levels){
+    const it = document.createElement("span"); it.className = "it";
+    const sw = document.createElement("span");
+    if(lv.type==="zone"){ sw.className = "zw"; sw.style.background = "color-mix(in srgb,"+lv.color+" 18%, transparent)"; sw.style.border = "1px solid "+lv.color; }
+    else { sw.className = "sw"; sw.style.borderTopColor = lv.color; }
+    it.appendChild(sw);
+    it.appendChild(document.createTextNode(lv.label));
+    legend.appendChild(it);
+  }
+}
+draw(CONF.btc); draw(CONF.eth);
+</script>
