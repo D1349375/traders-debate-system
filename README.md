@@ -211,6 +211,7 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 | `.claude/skills/benjamincowen-perspective/SKILL.md` | Benjamin Cowen 人格 Skill（2026-07-20 蒸餾，387 逐字稿抽樣；量化風險水位、宏觀貨幣政策） |
 | `.claude/skills/mvdp-perspective/SKILL.md` | Michaël van de Poppe 人格 Skill（2026-07-20 蒸餾，400 逐字稿；宏觀流動性傳導、altcoin 輪動階梯、sigma 極值減碼） |
 | [PERSONAS.md](PERSONAS.md) | 人格 Skill 總覽（給組員的快速索引：清單、方法論、辯論對立點、啟用方式、新增步驟） |
+| [HANDOFF.md](HANDOFF.md) | **第二批蒸餾交接文件**：已完成事項、待確認決定、方法論教訓。⚠️ 內含「新人格暫不納入生效」的裁示 |
 | `../.claude/skills/trader-debate/SKILL.md` | Orchestrator skill（辯論協議 runbook） |
 
 相關知識庫頁（vault `知識庫/`）：[[專案總覽]]、[[quant-strategy-dev skill]]、[[多重測試與測試帳本]]、[[倖存者偏差]]
