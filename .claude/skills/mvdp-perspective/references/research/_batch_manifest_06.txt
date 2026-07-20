@@ -1,0 +1,50 @@
+data/transcripts/MvdP\IoOZP4OBzfk_I'm Selling ALL my BITCOIN! [Crash Coming？!].en.txt
+data/transcripts/MvdP\_Vk0GigENoQ_Bitcoin Halving Price Prediction! [$500.000+？].en.txt
+data/transcripts/MvdP\N33OXzgcw8s_Ethereum ETF Approved! When Is Altseason Starting？.en.txt
+data/transcripts/MvdP\ZGOWJVipQs8_Bitcoin price to $50.000 during this Quarter, all you NEED to know! ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\aJ_nfe7oIyk_Altcoin Analysis： Is a BEAR Market Looming or is a Big Summer RUN on the Horizon？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\JnpazrUawYk_The Ultimate $10,000 Altcoin Portfolio for Small Investors!.en.txt
+data/transcripts/MvdP\MioAH4YSHsY_The Best Altcoin Trading Strategy This Bull Cycle!.en.txt
+data/transcripts/MvdP\-6R70NXi7dA_I'm Buying These Altcoins For The Coming Months! ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\wq5IqB0J3kA_Should I sell my altcoins？.en.txt
+data/transcripts/MvdP\lDVz-NVT7L0_Crypto Market on Edge： Durov’s Arrest, Market Sentiment, and Altcoin Trends (+ Big Giveaway).en.txt
+data/transcripts/MvdP\QmuvzC-B5pE_My $100K Altcoin Portfolio - If I Had To Start Over Today!.en.txt
+data/transcripts/MvdP\W-hcQd-Q2mY_Ethereum to $10,000 is NOT a Dream! Massive Bull Market Setup!.en.txt
+data/transcripts/MvdP\PUgyFuYaxP0_Why I'm Betting $10,000 On This One Altcoin.en.txt
+data/transcripts/MvdP\kjTP2zuc5NQ_The Crucial Move for Altcoins to Run.en.txt
+data/transcripts/MvdP\_mk8f6C_Ovk_I Just Put 50% of My Portfolio Into AI Altcoins.en.txt
+data/transcripts/MvdP\yVQmVVHQFlE_I bet everything on these altcoins & added one altcoin..en.txt
+data/transcripts/MvdP\XC8GGjSOTi8_The Time To Be 100% In Altcoins Is Now!.en.txt
+data/transcripts/MvdP\yA1U_cfz6M4_Bitcoin Bull Market： When Does It Start？.en.txt
+data/transcripts/MvdP\VSYlrItvgBo_How I’ll be trading my Altcoin Portfolio.en.txt
+data/transcripts/MvdP\_9tvfGeaUac_I Gave Claude $10,000 — It Built a Crypto Portfolio.en.txt
+data/transcripts/MvdP\VpWnftiBjqc_Deploying Cash into Altcoins! ｜ Altcoin Portfolio Update.en.txt
+data/transcripts/MvdP\uyr9ttmWDCY_The Altcoin & Bitcoin Bear Market has Started!.en.txt
+data/transcripts/MvdP\vJHgkadDNcE_Bitcoin Cycle Explained, $50K Or Bear Market？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\chVissO4KkQ_My full Altcoin portfolio..en.txt
+data/transcripts/MvdP\7Ozw-ocCwQ0_I’m Rebalancing My Public Altcoin Portfolio.en.txt
+data/transcripts/MvdP\UmmkAL3dDqk_Bitcoin Predictions for 2025! Will we see $250,000？.en.txt
+data/transcripts/MvdP\uhkgKmVs-xo_Buying Altcoins Is The Best Strategy Now! ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\8LwTMxLhTCE_Bitcoin Bear Market Crash Incoming after FED Meeting？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\cmLTAdDWlPw_Gold and Silver Led the Rally, Bitcoin Is Next....en.txt
+data/transcripts/MvdP\iXEgpjURHFw_Bitcoin Correction Is Over! Here’s Why! ｜ Michaël van de Poppe.en.txt
+data/transcripts/MvdP\NClMXrgQKzY_Bitcoin Bull Market Back Or Bull Trap？.en.txt
+data/transcripts/MvdP\wzvHW3HTa2I_Bitcoin Hits $37,000, Still Time To Buy？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\CuvhHXFmTTk_Bitcoin Price To ATH Pre-Halving Or Not？! ｜ Michaël van de Poppe.en.txt
+data/transcripts/MvdP\eKLbQNnOdSM_Should I Consider These Altcoins？.en.txt
+data/transcripts/MvdP\heFh31dmyDA_Altcoins Breaking Out or Fake Rally？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\2L2DIQRj-FU_Altcoin Bull Is Here, Here's Why You Should Buy ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\wGdiBOpCpqg_Chainlink Must-Buy Before $17 Gets Hit! Here's Why!.en.txt
+data/transcripts/MvdP\GK6_DcFg4xA_Bitcoin Bull Starts With Low CPI Data？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\r3eQ-5oOf4I_Bitcoin At Crucial Support, Another Crash Coming？.en.txt
+data/transcripts/MvdP\1F--dt4cv90_Bitcoin Breaking Out, Altcoins Ready To Follow？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\cYl61QFe90o_Bitcoin Bull Run Has Started or Will The Fed Stop It？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\3-AVSiGnSIY_Bitcoin Hits $25K! Will We See $30K？.en.txt
+data/transcripts/MvdP\7yV6c-WMW0Y_Bitcoin Price Must Hold This Level Or We'll Crash!.en.txt
+data/transcripts/MvdP\M9d9BP_CU-k_Bitcoin Correction As FED Comes Up？.en.txt
+data/transcripts/MvdP\pETWSNv8m_I_Bitcoin Correction, When Should You Buy？.en.txt
+data/transcripts/MvdP\M3V_Dt-JUnI_Should You Buy Altcoins And Which Ones？.en.txt
+data/transcripts/MvdP\La6V7Ch6p-Y_Crypto Outlook 2023, Bitcoin To $40K？.en.txt
+data/transcripts/MvdP\u895L4t0Wl0_Bitcoin Price Rally To $40K Next Months？.en.txt
+data/transcripts/MvdP\5cG0Ox1Vhjw_Fantom, To Buy Or To Sell, Target $1？.en.txt
+data/transcripts/MvdP\xoOU0H7tQZg_Top 3 Altcoins to BUY for the coming months! ｜ CryptoMichNL.en.txt

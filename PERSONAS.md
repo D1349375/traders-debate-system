@@ -18,7 +18,7 @@
 | **EmperorBTC** | `.claude/skills/emperorbtc-perspective/` | `emperorbtc` | 81 支 | 拍賣市場理論、成交量測謊、區間極值／SFP | 日線～週線 |
 | **Rekt Capital** | `.claude/skills/rektcapital-perspective/` | `rektcapital` | 589 支 | 四年減半週期、鏡像原則、週月線收盤紀律 | 週／月線 |
 | **Benjamin Cowen** | `.claude/skills/benjamincowen-perspective/` | `benjamincowen` | 387 支（自 2481 抽樣） | 量化風險水位、BTC 主導率、宏觀貨幣政策 | 週線～宏觀 |
-| **Michaël van de Poppe** | 蒸餾中 | `mvdp` | 抓取中（1275 抽樣近 400） | crypto TA＋altcoin 輪動 | 日～週線 |
+| **Michaël van de Poppe** | `.claude/skills/mvdp-perspective/` | `mvdp` | 400 支（取頻道最近 400） | 宏觀流動性傳導、altcoin 輪動階梯、sigma 極值減碼 | 日～週線 |
 
 無法蒸餾／暫緩：**GCR**（Twitter/X 匿名者、帳號已消失、YouTube 無本人頻道，需其 X 文字存檔才能走純本地語料模式）、**Mark Douglas**（已故、無官方頻道、語料薄）。
 
@@ -38,7 +38,14 @@
 **3. 日內結構 vs 週期位置**
 - ICT／TJR 看今天的流動性與 PD Array；Rekt／Cowen 看我們在週期的第幾個月。這是最容易在 R2 產生「你們看的根本不是同一個問題」的交鋒點。
 
+**4. crypto 內生 vs 外生（MvdP 加入後新增）**
+- MvdP 主張 crypto 的漲跌**外生於 crypto**——央行政策→流動性→殖利率→風險曲線位置。所有 crypto 面利多都出現而價格不漲，就代表驅動力在 crypto 之外。這讓他跟看盤面內部結構的 ICT／TJR／EmperorBTC 形成另一軸的分歧，也讓他跟 Cowen 在宏觀這一層意外地接近（兩人都反操縱敘事）。
+- 特別的是：**MvdP 曾在 Cowen 因看空被圍剿時公開替他說話**。所以這一對的衝突被設計成「證據之爭」而非人身攻擊，且 MvdP 的 SKILL 明文要求他承認 Cowen 在 2024-2025 對 alt 的看空是對的、自己是錯的。
+
 ## 兩項為了誠實而內建的特殊設計
+
+**方向不對稱信心上限（MvdP 專屬）**
+MvdP 是唯一一個 **1d 地平線對其有利**的人格——實測短線技術判斷 62.2%、中長期敘事判斷 10.0%。所以他不套用地平線折價，改成**依方向折價**：賣出／減碼側上限 60、買進側 45、中長期敘事 30。依據是他六次可稽核的執行型命中**全部在賣出側**，買進側則系統性失敗且從未被壓力測試。這個折價有語料證據，不是主觀評價。
 
 **地平線折價（Rekt、Cowen）**
 高時間框架人格被拉來回答「今天／明日方向」時，SKILL 內建 confidence 上限（Rekt ≈45、Cowen ≈50）。理由：讓人格對自己不擅長的地平線自動示弱，避免在 1d 評估上用滿分信心污染聚合結果。**但這只是緩解，不是解法**——單一 1d 主地平線評估所有人格對高時間框架者仍系統性不利，Phase 4 分析時應對這類人格另計 5d／20d 探索性指標（已記在 TODO）。
@@ -60,7 +67,10 @@
 2. **抓取**：`python data/fetch_transcripts.py <TraderName> <ChannelVideosURL> [取樣上限]`
    第三個參數可選，用來處理超大頻道（例如 Cowen 的 2481 支只抽最近 387 支）。腳本有防封鎖 sleep 與 `--download-archive` 續傳，中斷後重跑會接續。
 3. **走女媧 skill 全流程**：Phase 0.5 建目錄 → Phase 1 平行多 agent 抽取 → Phase 1.5 合併成維度檔 → Phase 2 三重驗證（跨語境重現／生成性／排他性）→ Phase 3 依模板組裝 SKILL.md → Phase 4 獨立子 agent 驗證。
-4. **一個實作上的坑**：Phase 1 抽取 agent 要明確加上「必須自己完成，絕對不要派生任何子 agent」的約束，否則它可能只負責分派而不產出檔案。
+4. **兩個實作上的坑**：
+   - Phase 1 抽取 agent 要明確加上「必須自己完成，絕對不要派生任何子 agent」的約束，否則它可能只負責分派而不產出檔案。
+   - **Phase 4 要有一支專門稽核「你自己寫的 SKILL」而非稽核素材的 agent。** MvdP 那次靠它抓到一個無出處的數字被寫進「誠實邊界」一節，以及一個會排除自身標誌案例的門檻。驗證素材不夠——要驗證你的產出。
+5. **抓取紀錄要留檔**（`00-corpus-provenance.md`）：記下抓取日、取樣參數、以及**哪些事實無法從留存證據回溯**。取樣參數會在列舉階段截斷日誌，事後補不回來。
 5. 完成後寫 `DISTILLATION_REPORT.md`、更新 README／TODO／本文件。
 
 ## 相關文件

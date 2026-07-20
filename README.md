@@ -142,6 +142,7 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 - [x] **ICT 人格完整蒸餾**（全 Phase 跑完），產出 `.claude/skills/ict-perspective/SKILL.md`，聊天+真實圖表測試通過
 - [x] **TJR 人格完整蒸餾（2026-07-19）**：765 支 YouTube 逐字稿（語料 2022-09~2026-07）走完女媧全流程（16 批平行抽取→7 維度合併→三重驗證→組裝），產出 `.claude/skills/tjr-perspective/SKILL.md`，3 子 agent 驗證通過（已知立場／辯論 JSON／邊緣推斷，全程守語言紅線）。研究過程完整留存於 `references/research/`，另附 `DISTILLATION_REPORT.md`
 - [x] **EmperorBTC 人格完整蒸餾（2026-07-19）**：以 `data/fetch_transcripts.py` 自行抓取官方頻道 81 支逐字稿（語料 2025-03~2026-07），走完女媧流程（4 批抽取→合併/三重驗證→組裝），產出 `.claude/skills/emperorbtc-perspective/SKILL.md`，3 子 agent 驗證通過。**crypto 原生（BTC 主場）＋走 Volume/Auction Market Theory 路線、哲學上反對 ICT/TJR 的「操縱獵殺」敘事**——為辯論系統提供真實框架分歧（呼應 §3.4）。附 `DISTILLATION_REPORT.md`
+- [x] **Michaël van de Poppe 人格完整蒸餾（2026-07-20）**：自抓 400 支逐字稿（取頻道最近 400 支，**非隨機抽樣**；語料約 2022-11~2026 年中），走完女媧流程（8 批抽取→3 agent 合併 7 維度檔→三重驗證→組裝），產出 `.claude/skills/mvdp-perspective/SKILL.md`，3 子 agent 驗證通過並回饋 **27 條修正**。**提供「crypto 外生於 crypto」的宏觀流動性傳導維度**與 altcoin 輪動階梯。設計上與其他四位最大的不同：**這是唯一「1d 主地平線對其有利」的人格**（實測短線技術 62.2% vs 中長期敘事 10.0%），故不套用地平線折價，改為**方向不對稱 confidence 上限**（賣出側 60／買進側 45／中長期 30）——依據是六次可稽核的執行型命中全部在賣出側。⚠️ **已知限制須與人格一起被知道**：績效不可稽核（公開組合為比例真實、金額非真實的代理組合）、外部視角維度第三方素材 0 條、抽樣偏重近期。附 `DISTILLATION_REPORT.md`
 - [x] **Rekt Capital 人格完整蒸餾（2026-07-19）**：自行抓取 589 支逐字稿（涵蓋約 2019-2026 全週期），走完女媧流程（8 批抽取→3 agent 合併 5 維度檔→三重驗證→組裝），產出 `.claude/skills/rektcapital-perspective/SKILL.md`，3 子 agent 驗證通過。**提供「週期位置」的高時間框架錨（四年減半週期／鏡像原則／週月線收盤紀律）**，與 ICT/TJR（日內結構）、EmperorBTC（拍賣/成交量）形成第三種維度。內建兩項特殊設計：**地平線折價**（週/月框架者在 1d 評估上 confidence 上限 45）與**反向誠實條款**（面對「框架不可證偽」質疑時據實承認而非硬拗）。附 `DISTILLATION_REPORT.md`
 - [x] Phase 4 回測規劃文件完成，並已對齊 quant skill v13（§7 增補）
 - [x] 辯論協議設計定案（本 README 第 3 節：兩輪固定、裁判職責邊界、旁路設計）
@@ -208,6 +209,8 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 | `.claude/skills/emperorbtc-perspective/SKILL.md` | EmperorBTC 人格 Skill（2026-07-19 蒸餾，81 逐字稿；crypto 原生、Volume/Auction Market Theory 路線） |
 | `.claude/skills/rektcapital-perspective/SKILL.md` | Rekt Capital 人格 Skill（2026-07-19 蒸餾，589 逐字稿；四年減半週期、高時間框架週期錨） |
 | `.claude/skills/benjamincowen-perspective/SKILL.md` | Benjamin Cowen 人格 Skill（2026-07-20 蒸餾，387 逐字稿抽樣；量化風險水位、宏觀貨幣政策） |
+| `.claude/skills/mvdp-perspective/SKILL.md` | Michaël van de Poppe 人格 Skill（2026-07-20 蒸餾，400 逐字稿；宏觀流動性傳導、altcoin 輪動階梯、sigma 極值減碼） |
+| [PERSONAS.md](PERSONAS.md) | 人格 Skill 總覽（給組員的快速索引：清單、方法論、辯論對立點、啟用方式、新增步驟） |
 | `../.claude/skills/trader-debate/SKILL.md` | Orchestrator skill（辯論協議 runbook） |
 
 相關知識庫頁（vault `知識庫/`）：[[專案總覽]]、[[quant-strategy-dev skill]]、[[多重測試與測試帳本]]、[[倖存者偏差]]

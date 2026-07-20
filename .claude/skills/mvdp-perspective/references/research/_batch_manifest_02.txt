@@ -1,0 +1,50 @@
+data/transcripts/MvdP\aszRLWnmceM_Altcoins Are Undervalued! ｜ Michaël van de Poppe.en.txt
+data/transcripts/MvdP\ra3zEbjTrpo_Bitcoin ETF： Everything You Need To Know! ｜ Michaël van de Poppe.en.txt
+data/transcripts/MvdP\MtSmYyqwxZc_Macro-Update： Where are we in the Bitcoin and Altcoins Cycle？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\KqUY5hnCy7I_Understanding The Impact of the FOMC and MicroStrategy on Bitcoin Price ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\eXHCTs0AxSQ_Altcoin Outlook 2024, What To Buy？ ｜ Michaël van de Poppe.en.txt
+data/transcripts/MvdP\gFnOakcwV60_Bitcoin ETF Approved： Bitcoin Price Top Is In？! ｜ Michaël van de Poppe.en.txt
+data/transcripts/MvdP\5VE3NsDoD8o_Why Most Crypto Day Traders Get It Wrong (A Simple Framework).en.txt
+data/transcripts/MvdP\UC5BJogLFPk_I've Bought More Altcoins, The Obvious Run Is Here!.en.txt
+data/transcripts/MvdP\h30JYWtjBUo_Why I Store 80% of My Crypto on a Hardware Wallet (Ledger Turorial).en.txt
+data/transcripts/MvdP\wpr9xlAUl9Q_Now is the time to BUY ALTCOINS! ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\O9Iykddck9Y_Altcoins Are Bottomed, Now Is The Time To Buy!.en.txt
+data/transcripts/MvdP\eJRBVlao8Ow_Bitcoin BREAKOUT with LOW CPI data？ XRP NOT a Security？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\Etzr7KuOolI_This Is Why The 4-Year Bitcoin Cycle Doesn't Exist! You've been Fooled!.en.txt
+data/transcripts/MvdP\PxvFpjUB35k_Ethereum to $20K？ ETH Price Prediction 2025!.en.txt
+data/transcripts/MvdP\_48_NfSQzoc_The Crypto Top Signal Is Here! Time To Be Out Of Altcoins？.en.txt
+data/transcripts/MvdP\WU-sM9OLilE_The Altcoin I'm Betting $10K On.en.txt
+data/transcripts/MvdP\fzuHYfInpiQ_I Rebalanced My Altcoin Portfolio!.en.txt
+data/transcripts/MvdP\Tyg64x1nDL8_Why Am I Still Holding Altcoins？.en.txt
+data/transcripts/MvdP\GoR0ebnRrhI_I Lost 60% Of My Altcoin Portfolio.en.txt
+data/transcripts/MvdP\ETe87rH4GP4_This NEW Altcoin Could Save My Portfolio!.en.txt
+data/transcripts/MvdP\MPaUewOUqvo_The Altcoin Bull Run No One Sees Coming (Why Bitcoin’s 4-Year Cycle Is DEAD).en.txt
+data/transcripts/MvdP\zvr42IYedTY_This is WHERE I BUY Bitcoin in this bear market! ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\qLlXHdZBF28_This VeChain Upgrade Changed Everything (Tokenomics Explained).en.txt
+data/transcripts/MvdP\6z_c2FHPUIE_Have altcoins and Bitcoin topped？.en.txt
+data/transcripts/MvdP\k0XgjlSH1As_Bitcoin Crash Or Rally After CPI Data？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\Q3iESFMFGJE_Am I Holding The Right Altcoins？.en.txt
+data/transcripts/MvdP\SLzQY_Zujf4_I hate this bull market..en.txt
+data/transcripts/MvdP\GxxUyCnhorg_ARE WE BACK IN A BEAR MARKET？! 🐻.en.txt
+data/transcripts/MvdP\5sNy1xYfhx0_Bitcoin CRASH to $12K as SEC SUES Binance？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\smN-5hFrP0s_Trading Altcoins Is Hard… Until You Learn This Strategy.en.txt
+data/transcripts/MvdP\8cljPs66l5s_Buying Bitcoin Now Is The Best Strategy？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\Sztx2vsoQV4_Is My Altcoin Portfolio Dead？.en.txt
+data/transcripts/MvdP\nFwTS5y2V3s_XRP RALLY to $1 and Litecoin BULLISH？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\-LAA9ehYxhM_Altcoins To Buy Or Altcoins To Sell! ｜ Michaël van de Poppe.en.txt
+data/transcripts/MvdP\I44dr9_a0BQ_Altcoins Are Dead, No More Bull Market？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\CIICAGSThQE_Altcoin Bull Cycle Has Started, Which Ones To Buy？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\9DKiREbGxYQ_Powell Causing Bitcoin Crash Again？!.en.txt
+data/transcripts/MvdP\VvevmMIqb8o_Bitcoin Breaking to $50K？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\ENr59xODjVA_Altcoins Are Dead, Here's Why! ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\g9klX2Ajfc0_Bitcoin Crash! What's Happening？!.en.txt
+data/transcripts/MvdP\5RIF4KnCDwI_Bitcoin Ready To Crash During CPI Week？ ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\qxW7G4Ps-Vo_Bitcoin to $40K After FOMC Meeting？.en.txt
+data/transcripts/MvdP\XKh3YgD10D0_Bitcoin Correction Before Bull After CPI？.en.txt
+data/transcripts/MvdP\M7P7At9Fu3w_These Altcoins Are Ready for a Breakout! ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\0JM-4NNd87o_Bitcoin Price I'm Looking To Buy! ｜ CryptoMichNL.en.txt
+data/transcripts/MvdP\Xu3QNYOMKI0_I Flew to London to Speak at Zebu Live (and Record 3 Podcasts in 48 Hours).en.txt
+data/transcripts/MvdP\JBaK1XoGBTc_Top 3 Beginners Tips When You Start in Crypto.en.txt
+data/transcripts/MvdP\4uMSTqi686E_Aptos, The Best Coin To Buy Now？.en.txt
+data/transcripts/MvdP\SZBknXJlM0Y_Raoul Pal Reveals BRUTAL Truth： ＂AI Changes Everything＂.en.txt
+data/transcripts/MvdP\jF2pcyxEBfw_What To Watch In The Upcoming Week With Bitcoin？.en.txt
