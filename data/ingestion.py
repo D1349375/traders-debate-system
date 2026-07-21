@@ -12,13 +12,24 @@ v3(2026-07-20,對齊 intraday_scenario 必填欄位):新增 1H(48根≈2天)/15M
 避免與 15M 的一天覆蓋範圍大量重疊、徒增成本卻無新資訊。
 
 v4(2026-07-21,真正的資訊分流,見 preregistration.md §8):摘要拆成兩個變體,不再是單一共用文字:
-- variant="core"(ICT/TJR共用):K線CSV**不含成交量欄位**,無RSI/量能區塊——兩人SKILL.md本就明文禁止
-  引用成交量與RSI,這次直接讓資料層面就不存在,而非「看得到但不准用」。
+- variant="core"(原ICT/TJR共用,v5起改為ICT專屬,見下):K線CSV**不含成交量欄位**,無RSI/量能區塊——
+  兩人SKILL.md本就明文禁止引用成交量與RSI,這次直接讓資料層面就不存在,而非「看得到但不准用」。
 - variant="emperorbtc"(專屬):K線CSV含成交量欄位,額外附「量能與動能指標」區塊(RSI(14)、近7日均量、
   當前量/均量比值)——皆為程式碼算出的客觀公式值(非LLM生成文字),且刻意不做POC/value area:
   後者需要決定分箱粒度/lookback window等方法論參數,等於替他做了一次框架詮釋選擇,牴觸「詮釋權下放」
   原則;RSI/均量比值是無方法論爭議的單一公式,不受此限。swing high/low 未加入計算層——實測抽查(對照
   2026-07-20 凍結行情原始K線與當日報告引用價位)未發現任何計算誤差,沒有實證問題不需要預先修。
+
+v5(2026-07-22,見 preregistration.md §8):兩項新增,皆為三人共用的中性事實層或TJR專屬:
+- **總經行事曆旗標**(所有變體皆含):判斷日是否落在 NFP 週(規則計算,任何年份皆準)/FOMC 決策週
+  (2026年會議日期,來源:federalreserve.gov/monetarypolicy/fomccalendars.htm,2026-07-22查證,
+  **需逐年手動更新**)/8月。純日期規則,不涉及方法論選擇,誠實揭露涵蓋範圍(不含CPI/假期行事曆)。
+- variant="tjr"(新增,ICT/TJR不再共用同一份):在 core 內容基礎上,額外附「相關資產參考行情」區塊
+  ——對方標的(BTC↔ETH)的日/4H/1H/15M已收盤K線(同core原則不含成交量)。動機:TJR SKILL.md Step2
+  第4維度明文要查「相關資產(如BTC vs ETH或大盤)有無SMT背離」,但先前架構下他從未拿到過對方標的的
+  任何資料。ICT刻意不給——他語料裡SMT只舉「ES vs NASDAQ等」,從未提過BTC/ETH,給了他也未必會用,
+  给了又主動提示等於替他發明語料沒有的框架連結,牴觸詮釋權下放原則。只給原始K線,不精算divergence
+  結論(同swing high/low、拒絕POC的邏輯)。
 """
 import ccxt
 import datetime
@@ -27,6 +38,18 @@ TIMEFRAMES_V2 = (("1w", 52), ("1d", 90), ("4h", 42), ("1h", 48), ("15m", 96), ("
 _TF_MS = {"1w": 7 * 86400 * 1000, "1d": 86400 * 1000, "4h": 4 * 3600 * 1000,
           "1h": 3600 * 1000, "15m": 15 * 60 * 1000, "5m": 5 * 60 * 1000}
 _TF_LABEL = {"1w": "週線", "1d": "日線", "4h": "4小時線", "1h": "1小時線", "15m": "15分鐘線", "5m": "5分鐘線"}
+
+# TJR 相關資產參考(v5):不含 5M(SMT背離是波段/日內確認工具,非最短線時機工具,5M級別噪音大於訊號)
+_TJR_REF_TIMEFRAMES = (("1d", 90), ("4h", 42), ("1h", 48), ("15m", 96))
+_CORRELATED_ASSET = {"BTC/USDT": "ETH/USDT", "ETH/USDT": "BTC/USDT"}
+
+# 2026 FOMC 會議日期(來源:federalreserve.gov/monetarypolicy/fomccalendars.htm,2026-07-22查證)
+# 只涵蓋 2026 年;Fed 通常在前一年下半年公布次年日曆,需逐年手動更新,不做則誠實回報「涵蓋範圍外」。
+_FOMC_MEETINGS_2026 = (
+    ("2026-01-27", "2026-01-28"), ("2026-03-17", "2026-03-18"), ("2026-04-28", "2026-04-29"),
+    ("2026-06-16", "2026-06-17"), ("2026-07-28", "2026-07-29"), ("2026-09-15", "2026-09-16"),
+    ("2026-10-27", "2026-10-28"), ("2026-12-08", "2026-12-09"),
+)
 
 
 # ---------- 純函數(可測試,不碰網路) ----------
@@ -77,6 +100,43 @@ def compute_rsi(closes, period=14):
     return round(100 - (100 / (1 + rs)), 2)
 
 
+def classify_macro_calendar(date_str):
+    """判斷日是否落在已知的高風險總經時段。純日期規則計算,不需外部資料/網路查詢。
+
+    回傳 (flags: list[str], coverage_note: str)。coverage_note 誠實揭露涵蓋範圍,
+    不得被解讀為「今天沒有旗標=保證沒有總經事件」。
+    """
+    d = datetime.date.fromisoformat(date_str)
+    flags = []
+
+    # NFP:每月第一個星期五,規則計算,任何年份皆準
+    first_of_month = d.replace(day=1)
+    first_friday = first_of_month
+    while first_friday.weekday() != 4:  # 4 = Friday
+        first_friday += datetime.timedelta(days=1)
+    week_start = first_friday - datetime.timedelta(days=first_friday.weekday())
+    week_end = week_start + datetime.timedelta(days=6)
+    if week_start <= d <= week_end:
+        flags.append(f"NFP週(本月NFP發布日 {first_friday.isoformat()})")
+
+    # FOMC:落在會議當週(以會議開始日所在週一~週日為範圍)
+    for start_s, end_s in _FOMC_MEETINGS_2026:
+        start = datetime.date.fromisoformat(start_s)
+        meeting_week_start = start - datetime.timedelta(days=start.weekday())
+        meeting_week_end = meeting_week_start + datetime.timedelta(days=6)
+        if meeting_week_start <= d <= meeting_week_end:
+            flags.append(f"FOMC決策週(會議 {start_s}~{end_s},決策公布於 {end_s})")
+            break
+
+    # 8月:慣例流動性偏低月份
+    if d.month == 8:
+        flags.append("8月(慣例流動性偏低月份)")
+
+    coverage_note = ("涵蓋範圍:NFP(規則計算,任何年份皆準)+ FOMC(僅2026年,來源見程式碼註解,"
+                     "需逐年更新)+ 8月旗標。CPI/假期行事曆目前未涵蓋,無旗標不代表當天保證無總經事件。")
+    return flags, coverage_note
+
+
 def compute_volume_ratio(volumes, window=7):
     """近 window 筆均量(不含當前這筆,避免自己除自己)、當前量、比值。
 
@@ -91,12 +151,14 @@ def compute_volume_ratio(volumes, window=7):
     return round(avg, 2), round(current, 2), ratio
 
 
-def compose_summary_v2(asset, judgment_date, sections, funding_now, funding_avg7, snapshot, variant="core"):
-    """組裝 v2/v3 摘要全文,依 variant 決定資訊分流內容(v4,見模組docstring)。
+def compose_summary_v2(asset, judgment_date, sections, funding_now, funding_avg7, snapshot,
+                       variant="core", ref_asset=None, ref_sections=None):
+    """組裝 v2/v3/v5 摘要全文,依 variant 決定資訊分流內容(v4/v5,見模組docstring)。
 
     sections: list of (timeframe, rows);snapshot: dict(price, change_24h, high, low, note)
-    variant="core"(預設,ICT/TJR共用):不含成交量、無量能/RSI區塊。
+    variant="core"(預設,ICT專屬):不含成交量、無量能/RSI區塊。
     variant="emperorbtc":含成交量CSV欄位 + 額外「量能與動能指標」區塊。
+    variant="tjr":同core內容 + 額外「相關資產參考行情」區塊(需傳入 ref_asset/ref_sections)。
     """
     include_volume = (variant == "emperorbtc")
     vol_note = "date,open,high,low,close,volume" if include_volume else "date,open,high,low,close"
@@ -116,6 +178,11 @@ def compose_summary_v2(asset, judgment_date, sections, funding_now, funding_avg7
         avg_txt = f",近 7 日均值 {funding_avg7:.6f}" if funding_avg7 is not None else ""
         parts.append(f"當期 {funding_now:.6f}{avg_txt}(正=多方付費)")
     parts.append("")
+    flags, coverage_note = classify_macro_calendar(judgment_date)
+    parts.append("=== 總經行事曆旗標(程式碼規則計算,非LLM生成文字;三人格皆提供) ===")
+    parts.append("、".join(flags) if flags else "本判斷日未落在已知的NFP週/FOMC決策週/8月範圍內")
+    parts.append(coverage_note)
+    parts.append("")
     if variant == "emperorbtc":
         daily_rows = next((rows for tf, rows in sections if tf == "1d"), [])
         closes = [r[4] for r in daily_rows]
@@ -130,6 +197,13 @@ def compose_summary_v2(asset, judgment_date, sections, funding_now, funding_avg7
         else:
             parts.append("日線量能比值: 資料不足,無法計算")
         parts.append("")
+    if variant == "tjr" and ref_asset and ref_sections:
+        parts.append(f"=== 相關資產參考行情:{ref_asset}(原始K線,供你的框架自行判斷是否有可比較意義的"
+                     f"分歧或同步現象;非精算結論,不含成交量) ===")
+        for tf, rows in ref_sections:
+            parts.append(f"--- {_TF_LABEL[tf]}(最近 {len(rows)} 根已收盤) ---")
+            parts.append(format_candles(rows, include_volume=False))
+            parts.append("")
     parts.append("=== 當下快照 ===")
     parts.append(f"價格: {snapshot['price']}")
     if snapshot.get("change_24h") is not None:
@@ -179,8 +253,9 @@ def build_market_context(symbol="BTC/USDT", as_of=None, variant="core"):
 
     as_of=None → 實盤模式(判斷日=今日 UTC,快照=即時價)
     as_of="YYYY-MM-DD" → 回測模式(快照=該日開盤價近似,見設計文件 §3)
-    variant="core"|"emperorbtc" → 資訊分流(v4,見模組docstring),決定文字摘要內容;
-    不影響落地的 OHLC 事實(data_dict 兩變體皆相同,只是各自獨立抓取的即時讀數)。
+    variant="core"|"emperorbtc"|"tjr" → 資訊分流(v4/v5,見模組docstring),決定文字摘要內容;
+    不影響落地的 OHLC 事實(data_dict 各變體皆相同,只是各自獨立抓取的即時讀數)。
+    variant="tjr" 會額外抓取相關資產(BTC↔ETH)的參考行情,多一次網路請求。
     回傳 (data_dict, summary_text);失敗回 (None, None)。
     """
     exchange = ccxt.binance({"enableRateLimit": True})
@@ -228,8 +303,16 @@ def build_market_context(symbol="BTC/USDT", as_of=None, variant="core"):
                     "close": day[1], "volume": None,
                     "funding_rate": funding_now, "snapshot_captured_at": snapshot_captured_at}
 
+        ref_asset, ref_sections = None, None
+        if variant == "tjr":
+            ref_asset = _CORRELATED_ASSET.get(symbol)
+            if ref_asset:
+                ref_sections = [(tf, _fetch_tf(exchange, ref_asset, tf, count, as_of_ms))
+                                for tf, count in _TJR_REF_TIMEFRAMES]
+
         summary = compose_summary_v2(symbol, judgment_date, sections,
-                                     funding_now, funding_avg7, snapshot, variant=variant)
+                                     funding_now, funding_avg7, snapshot, variant=variant,
+                                     ref_asset=ref_asset, ref_sections=ref_sections)
         return data, summary
     except Exception as e:
         print(f"抓取 {symbol} 行情失敗: {e}")

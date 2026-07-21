@@ -50,14 +50,20 @@ def _now_iso():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
+_VARIANT_COLUMNS = {
+    "core": "context_summary",
+    "emperorbtc": "context_summary_emperorbtc",
+    "tjr": "context_summary_tjr",
+}
+
+
 def upsert_market(session, data, summary, variant="core"):
     """行情快照可重抓更新(它不是判斷,不受落地不改約束)。
 
-    variant="core"(ICT/TJR共用摘要)寫入 context_summary;
-    variant="emperorbtc"(專屬摘要,含成交量/RSI)寫入 context_summary_emperorbtc;
-    兩變體分開存欄,同一 (date, asset) 兩次呼叫(各一變體)不會互相覆蓋對方的文字內容。
-    OHLC/資金費率等數值欄位仍為同一行情事實,兩次呼叫皆會更新(後呼叫者的讀數為準,
-    差異僅為兩次即時抓取間的數秒級價格漂移,遠小於 Neutral 門檻,不需要額外處理)。
+    variant="core"(ICT專屬)寫入 context_summary;variant="emperorbtc" 寫入 context_summary_emperorbtc;
+    variant="tjr" 寫入 context_summary_tjr。三變體分開存欄,同一 (date, asset) 多次呼叫(各一變體)
+    不會互相覆蓋對方的文字內容。OHLC/資金費率等數值欄位仍為同一行情事實,每次呼叫皆會更新
+    (後呼叫者的讀數為準,差異僅為多次即時抓取間的數秒級價格漂移,遠小於 Neutral 門檻,不需額外處理)。
     """
     row = session.query(MarketData).filter_by(date=data['date'], asset=data['asset']).one_or_none()
     if row is None:
@@ -70,10 +76,7 @@ def upsert_market(session, data, summary, variant="core"):
     row.volume = data.get('volume')
     row.funding_rate = data.get('funding_rate')
     row.open_interest = data.get('open_interest')
-    if variant == "emperorbtc":
-        row.context_summary_emperorbtc = summary
-    else:
-        row.context_summary = summary
+    setattr(row, _VARIANT_COLUMNS.get(variant, "context_summary"), summary)
     row.snapshot_captured_at = data.get('snapshot_captured_at')
     session.commit()
     return row

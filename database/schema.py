@@ -17,8 +17,9 @@ class MarketData(Base):
     # 專門為幣圈量身打造的數據
     funding_rate = Column(Float, nullable=True) # 資金費率
     open_interest = Column(Float, nullable=True) # 未平倉量
-    context_summary = Column(Text, nullable=True) # 將餵給 LLM 的文字版行情摘要(core變體:ICT/TJR共用,無成交量/RSI)
+    context_summary = Column(Text, nullable=True) # 將餵給 LLM 的文字版行情摘要(core變體:ICT專屬,無成交量/RSI)
     context_summary_emperorbtc = Column(Text, nullable=True) # emperorbtc變體專屬:含成交量CSV欄位+RSI+量能比值(資訊分流,見preregistration §8)
+    context_summary_tjr = Column(Text, nullable=True) # tjr變體專屬:core內容+相關資產(BTC/ETH)參考行情(v5,見preregistration §8)
     # 快照捕捉時間(ISO UTC):實盤模式=實際抓取當下的 wall-clock 時間;
     # 回測模式=as-of 日期的參考基準時點(該日 00:00 UTC,非程式實際執行時間)
     snapshot_captured_at = Column(String, nullable=True)

@@ -23,10 +23,12 @@ from database.db import get_session, upsert_market, record_opinion, finalize, fi
 
 # v2-2026-07-19:摘要升級為多時間框架資訊集(週52/日90/4h42+費率+快照,見 市場摘要v2_資訊集設計.md)
 # v3-2026-07-20:新增 1H/15M/5M 日內時間框架 + intraday_scenario 必填欄位(見 preregistration.md §8)
-# v4-2026-07-21:摘要拆為 core(ICT/TJR,無成交量)/emperorbtc(含成交量+RSI+量能比值)兩變體,
+# v4-2026-07-21:摘要拆為 core(原ICT/TJR,無成交量)/emperorbtc(含成交量+RSI+量能比值)兩變體,
 #   真正的資訊分流而非「看得到但不准用」(見 preregistration.md §8)
+# v5-2026-07-22:新增總經行事曆旗標(三變體皆含,NFP/FOMC/8月規則計算);新增 tjr 變體(core+相關資產
+#   BTC/ETH參考行情);ICT SKILL.md 信心分級表修正COT/SMT永久缺席造成的天花板效應(見 preregistration.md §8)
 # 協議不變:兩輪固定,R1 盲判 → R2 結構化反駁;單人格只跑 R1
-PROTOCOL_VERSION = "v4-2026-07-21"
+PROTOCOL_VERSION = "v5-2026-07-22"
 
 
 def cmd_market(args):
@@ -101,8 +103,9 @@ def main():
     p.add_argument("--asset", default="BTC/USDT")
     p.add_argument("--as-of", dest="as_of", default=None,
                    help="回測模式:YYYY-MM-DD(快照=該日開盤價近似);省略=實盤模式")
-    p.add_argument("--variant", choices=["core", "emperorbtc"], default="core",
-                   help="資訊分流變體:core=ICT/TJR共用(預設,無成交量);emperorbtc=專屬(含成交量+RSI+量能比值)")
+    p.add_argument("--variant", choices=["core", "emperorbtc", "tjr"], default="core",
+                   help="資訊分流變體:core=ICT專屬(預設,無成交量);emperorbtc=專屬(含成交量+RSI+量能比值);"
+                        "tjr=專屬(core內容+相關資產BTC/ETH參考行情,多一次網路請求)")
     p.set_defaults(fn=cmd_market)
 
     p = sub.add_parser("record", help="落地人格判斷(JSON 檔)")

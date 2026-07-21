@@ -88,7 +88,7 @@ class TestFinalize:
 
 
 class TestUpsertMarketVariant:
-    """資訊分流(v4):core/emperorbtc 兩變體各自獨立存欄,互不覆寫對方文字。"""
+    """資訊分流(v4/v5):core/emperorbtc/tjr 三變體各自獨立存欄,互不覆寫對方文字。"""
 
     def test_core_and_emperorbtc_write_separate_columns(self, session):
         upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT", "close": 50000.0},
@@ -97,6 +97,14 @@ class TestUpsertMarketVariant:
                             "emperorbtc摘要文字", variant="emperorbtc")
         assert row.context_summary == "core摘要文字"
         assert row.context_summary_emperorbtc == "emperorbtc摘要文字"
+
+    def test_all_three_variants_write_separate_columns(self, session):
+        upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT"}, "core文字", variant="core")
+        upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT"}, "emp文字", variant="emperorbtc")
+        row = upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT"}, "tjr文字", variant="tjr")
+        assert row.context_summary == "core文字"
+        assert row.context_summary_emperorbtc == "emp文字"
+        assert row.context_summary_tjr == "tjr文字"
 
     def test_default_variant_is_core(self, session):
         row = upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT",

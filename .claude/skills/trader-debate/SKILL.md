@@ -29,31 +29,38 @@ description: >-
    - TJR → `.claude/skills/tjr-perspective/SKILL.md`
    - EmperorBTC → `.claude/skills/emperorbtc-perspective/SKILL.md`
    標的:**BTC/USDT 與 ETH/USDT**(每天兩個標的都要跑,除非 preregistration 增補另有標的變更)。
+3. **檢查判斷日年份是否超出 `data/ingestion.py` 的 `_FOMC_MEETINGS_2026` 已涵蓋範圍**(目前僅涵蓋2026年)。
+   若判斷日已進入 2027 年或更新的年份:**照常執行今日 bias**(不因此停下),但要在 Step 5 回報使用者時
+   一併提醒:「FOMC 決策週旗標已超出涵蓋範圍(僅2026年),本次判斷可能漏掉真實的 FOMC 週,需要人工
+   更新 `_FOMC_MEETINGS_2026` 常數(來源建議:federalreserve.gov/monetarypolicy/fomccalendars.htm)」。
+   NFP 與 8月旗標為規則計算,任何年份皆準,不受此限制。
 
 ## 流程(對每個標的獨立走完 Step 1-4)
 
 ### Step 1 — 抓行情(輸入凍結 + 資訊分流)
-**資訊分流(v4,見 preregistration.md §8)**:每個標的要凍結**兩份**檔案,不是一份——ICT/TJR 共用 `core` 變體(無成交量),EmperorBTC 專屬 `emperorbtc` 變體(含成交量 + RSI + 量能比值)。兩變體的差異定義在 `data/ingestion.py`,orchestrator 不需要、也不應該自己詮釋或補充指標,照抓照存即可。
+**資訊分流(v4/v5,見 preregistration.md §8)**:每個標的要凍結**三份**檔案,不是一份——ICT 專屬 `core` 變體(無成交量)、TJR 專屬 `tjr` 變體(core內容 + 相關資產BTC/ETH參考行情)、EmperorBTC 專屬 `emperorbtc` 變體(含成交量 + RSI + 量能比值)。三變體的差異定義在 `data/ingestion.py`,orchestrator 不需要、也不應該自己詮釋或補充指標,照抓照存即可。
 
-**先檢查 `data/market_context/<date>_<asset代碼>_<variant>.txt` 是否已存在**(asset代碼=去掉斜線如 BTCUSDT;variant=`core`或`emperorbtc`,兩者分開判斷):
+**先檢查 `data/market_context/<date>_<asset代碼>_<variant>.txt` 是否已存在**(asset代碼=去掉斜線如 BTCUSDT;variant=`core`/`tjr`/`emperorbtc`,三者分開判斷):
 - **已存在 → 必須直接重用該檔,不得重抓**。同一判斷日的所有 run(含 dry-run、含不同協作者)都吃同一份凍結輸入,否則跨 run 不可比。
-- 不存在 → 抓行情並落檔(每個標的兩條指令,共用/專屬各一):
+- 不存在 → 抓行情並落檔(每個標的三條指令):
 ```
 venv\Scripts\python.exe main.py market --asset BTC/USDT --variant core       > data\market_context\<date>_BTCUSDT_core.txt
+venv\Scripts\python.exe main.py market --asset BTC/USDT --variant tjr        > data\market_context\<date>_BTCUSDT_tjr.txt
 venv\Scripts\python.exe main.py market --asset BTC/USDT --variant emperorbtc > data\market_context\<date>_BTCUSDT_emperorbtc.txt
 venv\Scripts\python.exe main.py market --asset ETH/USDT --variant core       > data\market_context\<date>_ETHUSDT_core.txt
+venv\Scripts\python.exe main.py market --asset ETH/USDT --variant tjr        > data\market_context\<date>_ETHUSDT_tjr.txt
 venv\Scripts\python.exe main.py market --asset ETH/USDT --variant emperorbtc > data\market_context\<date>_ETHUSDT_emperorbtc.txt
 ```
 輸出第一行是 `{"date": ..., "asset": ..., "variant": ...}`,其後是行情摘要全文。記下 date/asset。
-兩變體是各自獨立的即時抓取,即時價格可能有數秒級落差(遠小於 Neutral 門檻,不需處理,`snapshot_captured_at` 已誠實記錄實際抓取時間)。
+`tjr` 變體會多抓一次相關標的的行情(BTC查詢會多抓ETH,反之亦然),屬預期行為。三變體是各自獨立的即時抓取,即時價格可能有數秒級落差(遠小於 Neutral 門檻,不需處理,`snapshot_captured_at` 已誠實記錄實際抓取時間)。
 凍結檔應隨 git 提交,讓協作者重跑時拿到同一份輸入。
 
 ### Step 2 — R1 獨立盲判
 對**每個生效人格 × 每個標的**各開一個獨立 subagent(Agent 工具,general-purpose 即可),可全部平行:
 
 - **prompt 必須逐字使用 `templates/r1_prompt.txt`,只填充 `{佔位符}`,不得增刪或改寫任何語句**(prompt 措辭差異會系統性平移輸出分佈,見「隨機性控制」)。人格 SKILL.md 路徑:ICT=`.claude/skills/ict-perspective/SKILL.md`,其餘同模式。
-- **`{MARKET_CONTEXT_PATH}` 依人格分流填值,不是固定同一份**:EmperorBTC 填 `..._emperorbtc.txt`;ICT、TJR 填 `..._core.txt`。填錯等於資訊分流失效,務必對照 Step 1 的檔名。
-- **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊;也不得混入其他標的的摘要,也不得把 emperorbtc 變體的內容用於 ICT/TJR(或反之)**(逐標的、逐分流獨立判斷,歸因才乾淨)
+- **`{MARKET_CONTEXT_PATH}` 依人格分流填值,不是固定同一份**:ICT 填 `..._core.txt`;TJR 填 `..._tjr.txt`;EmperorBTC 填 `..._emperorbtc.txt`。填錯等於資訊分流失效,務必對照 Step 1 的檔名。
+- **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊;也不得混入其他標的的摘要,也不得把某人格的變體內容用給另一人格**(逐標的、逐分流獨立判斷,歸因才乾淨)。`tjr` 變體內建的相關資產參考行情屬於 TJR 專屬設計,不算違反此鐵律。
 - 輸出格式已寫死在模板內,含**必答項 `intraday_scenario`**(今日收盤前雙劇本 if-then,範圍限定判斷日當天,不得是多日/週目標;詳細規格見模板檔本身,不在此重複)。
 
 收齊後寫入暫存 JSON 檔(scratchpad),每筆補上 `date`/`asset`/`persona`/`round`(=1)/`model_id`(subagent 實際使用的模型 ID),然後:
@@ -65,7 +72,7 @@ venv\Scripts\python.exe main.py record --json <r1檔案路徑>
 單人格直接跳到 Step 4。多人格時,對每個人格再開 subagent:
 
 - **prompt 必須逐字使用 `templates/r2_prompt.txt`,只填充 `{佔位符}`**。R1 各家輸出先整理成單一 JSON 檔(scratchpad,含 direction/confidence/reasoning/intraday_scenario 四欄,不含過程全文),路徑填入 `{R1_JSON_PATH}`。
-- `{MARKET_CONTEXT_PATH}` 分流規則與 Step 2 相同:EmperorBTC 填 `..._emperorbtc.txt`,ICT/TJR 填 `..._core.txt`,不得填錯或混用。
+- `{MARKET_CONTEXT_PATH}` 分流規則與 Step 2 相同:ICT 填 `..._core.txt`,TJR 填 `..._tjr.txt`,EmperorBTC 填 `..._emperorbtc.txt`,不得填錯或混用。
 - 協議必答項 (a)(b)(c)(d) 與輸出格式(JSON 加 `falsifier`、`intraday_scenario` 兩欄)已寫死在模板內。(d) = 更新後的 `intraday_scenario`,範圍限制同 Step 2,可沿用 R1 版本但須重新確認仍成立,不可留空。
 
 record 落地(round=2)。

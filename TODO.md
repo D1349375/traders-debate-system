@@ -28,6 +28,13 @@
 - [x] ICT/TJR SKILL.md 新增「資料使用邊界」規範(2026-07-20):禁止引用成交量作判斷依據,追查 dry-run 發現的「帶量」「量縮」語句屬敘事層無傷大雅描述(R2 反駁確認實際判斷邏輯未依賴成交量),但為避免報告可讀性混淆與未來真正污染風險,明文禁止;preregistration §8 已記錄,ICT 兩份鏡像已同步
 - [x] **摘要 v4:真正的資訊分流(2026-07-21)**:市場摘要拆成 `core`(ICT/TJR共用,無成交量)/`emperorbtc`(專屬,含成交量+RSI(14)+近7日量能比值,程式碼算非LLM生成)兩變體,取代先前「看得到但不准用」的作法;明確排除 POC/value area(涉及分箱/lookback方法論選擇,等於代人格做詮釋決定)與 swing high/low 預先計算(抽查 07-20 凍結資料未發現任何 LLM 計算誤差,無實證問題不預修)。`main.py market` 新增 `--variant`,`database/schema.py` 新增 `context_summary_emperorbtc`,trader-debate SKILL.md 僅動 Step 1/2/3/6(人格 SKILL.md 三份皆未改動);`protocol_version` 升 `v4-2026-07-21`;54 pytest 全過(含真實行情 smoke test 驗證兩變體輸出正確);preregistration §8 已記錄完整決策脈絡(含與上一條「架構重寫需基準期」承諾的關係說明)
 - [x] **DB schema 自動遷移(2026-07-21)**:`database/db.py` 的 `get_session()` 新增 `_sync_schema()`,每次呼叫自動比對既有 DB 欄位與 schema.py 宣告差異,缺什麼自動 `ALTER TABLE ADD COLUMN` 補齊(新欄位一律 NULL)。動機:此欄位遷移手動做過三次(`snapshot_captured_at`/`intraday_scenario`/`context_summary_emperorbtc`),協作者在其他機器 pull 新 schema 後首次執行會撞到 `no such column`,自動化後不再需要手動介入或另外寫文件提醒;54 pytest 含此機制的邊界測試(模擬舊表補欄位、schema已最新時的 no-op)
+- [x] **摘要 v5:總經行事曆旗標 + TJR專屬相關資產參考行情 + ICT信心天花板修正(2026-07-22)**:
+  - 三變體皆新增「總經行事曆旗標」區塊(NFP週規則計算、2026年FOMC決策週查證自 federalreserve.gov、8月旗標),程式碼純日期規則,誠實揭露不涵蓋CPI/假期行事曆
+  - 新增 `tjr` 變體(取代原本ICT/TJR共用的`core`):core內容 + 相關資產(BTC↔ETH)日/4H/1H/15M參考行情(不含成交量、不精算divergence結論)——動機:TJR SKILL.md Step2第4維度明文要查「BTC vs ETH有無SMT背離」,但先前架構下他從未拿到過對方標的的任何資料,三天報告他自己都在講「無ETH對照」。ICT刻意不給同等資料:他語料裡SMT只舉ES/NASDAQ,從未提過BTC/ETH,給了他也未必會用,主動提示又等於替他發明語料沒有的框架連結
+  - ICT SKILL.md 修正信心分級表:COT與跨資產SMT在本系統結構性永久缺席,不再因此判定「維度4無數據」而把信心永久鎖死在45-70區間(75-95的頂格區間先前實質上永遠打不開);季節性判斷改依總經行事曆旗標評估,不受COT/SMT缺席影響
+  - `database/schema.py` 新增 `context_summary_tjr`;`main.py --variant` 新增 `tjr` 選項;`protocol_version` 升 `v5-2026-07-22`;trader-debate SKILL.md Step1改凍結三份檔案、Step2/3三方路由
+  - 63 pytest 全過(9個新增:總經行事曆旗標邊界案例、tjr變體輸出、DB三欄寫入);真實行情smoke test驗證三變體皆正確(tjr變體35.4KB,含ETH日/4H/1H/15M參考資料且不含成交量)
+  - preregistration §8 已記錄完整脈絡
 
 ## 進行中討論
 - [ ] **回測支線（探索性,2026-02~07-14 半乾淨區）待與使用者討論後啟動**,懸而未決:(a) 語料稽核判定標準多嚴——提到 BTC/ETH 就剔除該日,還是要具體到價位/方向才剔除;(b) pilot 30 天怎麼選——隨機抽 vs 連續段;(c) 探索性預登記是否也走使用者簽署流程。背景見 `回測污染分析_雙層記憶.md`。**有賞味期限:模型升級到更新知識截止日即失效,要做要趁早**
@@ -43,6 +50,7 @@
 ## 未來方向（待評估，尚未決定）
 - [ ] 將「交易員辯論」流程本身封裝成一個 Claude Skill（比照女媧skill的模式：`/交易員辯論` 一鍵跑今日 bias）
 - [ ] 將整個專案發展成完整前後端架構產品（Web 介面 / 儀表板 / 可能對外的產品）——結論是「先驗證再包裝」，Skill化是產品化的必經之路不是繞路
+- [ ] **消息面 compiler agent(2026-07-22 討論,非必須,有隱藏成本)**:討論脈絡見 preregistration §8——三人格 SKILL.md 都提到需要判斷「今天是不是重大消息日」(CPI/FOMC/NFP/Powell講話),已知行事曆部分(FOMC/NFP)已用純日期規則解決(見摘要 v5),但**真正不可預期的即時消息(突發新聞、非排定的 Fed 談話、地緣政治事件)** 目前完全沒有涵蓋,任何人格都拿不到。若要解決,需要開一個獨立的消息面 subagent(可能要用 WebSearch),整理後依資訊分流原則發給各自會用到的人格(例如 EmperorBTC 需要 DXY,這點也跟上面「待接入 DXY」的 TODO 項目相關)。**標記為非必須,原因**:(1) 隱藏成本高——WebSearch 的查詢延遲、token 成本、查到內容的可靠性/來源驗證、要不要在 dry-run 先測過再上線,是一整套新的架構決定,不是小補丁;(2) 已知行事曆(FOMC/NFP)已經解掉多數已被 SKILL.md 明確提及的用例,真正的增量價值只剩「突發消息」這一小塊,價值/成本比不明朗;(3) 沒有證據顯示現有樣本因為缺這塊而判斷失準——目前優先要務仍是 `bias_report_metrics.py` 跟累積樣本,不要在還沒量出問題規模前就動這個更大的工。若未來想啟動,建議先用分歧度診斷腳本類似的手法,看有沒有實際證據支持,而非直接動工。
 
 ## 已確認可接受的變動
 - [ ] 專案架構/現有程式碼允許後續大幅修改（不受目前 DebateSystem 現有實作綁死）

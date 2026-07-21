@@ -1,6 +1,6 @@
 """摘要 v2/v4 純函數測試:已收盤判定邊界、CSV 格式、摘要組裝、資訊分流(core/emperorbtc)。"""
 from data.ingestion import (select_closed, format_candles, compose_summary_v2,
-                            compute_rsi, compute_volume_ratio)
+                            compute_rsi, compute_volume_ratio, classify_macro_calendar)
 
 DAY = 86400 * 1000
 
@@ -69,6 +69,31 @@ class TestComputeRSI:
     def test_exact_minimum_length_computes(self):
         closes = [100.0 + i for i in range(15)]  # period+1 = 15 筆,邊界值
         assert compute_rsi(closes, period=14) is not None
+
+
+class TestClassifyMacroCalendar:
+    def test_nfp_week_detected(self):
+        # 2026-01-02 是 2026年1月第一個星期五(NFP發布日),2026-01-01 落在同一週
+        flags, _ = classify_macro_calendar("2026-01-01")
+        assert any("NFP" in f for f in flags)
+
+    def test_fomc_week_detected(self):
+        # 2026-01-27/28 為官方公布之FOMC會議日期(federalreserve.gov)
+        flags, _ = classify_macro_calendar("2026-01-27")
+        assert any("FOMC" in f for f in flags)
+
+    def test_august_flag(self):
+        flags, _ = classify_macro_calendar("2026-08-15")
+        assert any("8月" in f for f in flags)
+        assert not any("NFP" in f or "FOMC" in f for f in flags)  # 該週非NFP週也非FOMC週
+
+    def test_ordinary_week_no_flags(self):
+        flags, _ = classify_macro_calendar("2026-07-22")
+        assert flags == []
+
+    def test_coverage_note_always_present(self):
+        _, note = classify_macro_calendar("2026-07-22")
+        assert "CPI" in note and "未涵蓋" in note  # 誠實揭露涵蓋範圍外的項目
 
 
 class TestComputeVolumeRatio:
@@ -143,3 +168,24 @@ class TestComposeSummary:
         s_core = compose_summary_v2("BTC/USDT", "2026-07-19",
                                     [("1d", [candle(0)])], None, None, self._snapshot(), variant="core")
         assert s_default == s_core
+
+    def test_macro_calendar_section_present_in_all_variants(self):
+        for variant in ("core", "emperorbtc", "tjr"):
+            s = compose_summary_v2("BTC/USDT", "2026-01-27",
+                                   [("1d", [candle(0)])], None, None, self._snapshot(), variant=variant)
+            assert "總經行事曆旗標" in s and "FOMC" in s
+
+    def test_tjr_variant_includes_correlated_asset_block(self):
+        ref_sections = [("1d", [candle(i * DAY, price=2000.0) for i in range(3)])]
+        s = compose_summary_v2("BTC/USDT", "2026-07-19",
+                               [("1d", [candle(0)])], None, None, self._snapshot(),
+                               variant="tjr", ref_asset="ETH/USDT", ref_sections=ref_sections)
+        assert "相關資產參考行情:ETH/USDT" in s
+        assert "非精算結論" in s
+        assert "2000.0" in s  # 對方標的的實際價格有出現
+        assert "close,volume" not in s  # 參考行情同樣不含成交量
+
+    def test_non_tjr_variant_has_no_correlated_asset_block(self):
+        s = compose_summary_v2("BTC/USDT", "2026-07-19",
+                               [("1d", [candle(0)])], None, None, self._snapshot(), variant="core")
+        assert "相關資產參考行情" not in s
