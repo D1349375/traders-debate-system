@@ -1,7 +1,10 @@
 """db.py 落地層測試:寫入不可覆寫、單/多人格 finalize、事後回填邊界。"""
+import sqlite3
+
 import pytest
 
 from database.db import get_session, record_opinion, finalize, fill_outcomes, upsert_market
+from database.schema import MarketData
 
 
 @pytest.fixture
@@ -82,6 +85,56 @@ class TestFinalize:
         rec(session, "ict", 1, "Bullish", 70)
         r = finalize(session, date="2026-01-01", asset="BTC/USDT", protocol_version="test")
         assert r.price_at_bias == 50000.0
+
+
+class TestUpsertMarketVariant:
+    """資訊分流(v4):core/emperorbtc 兩變體各自獨立存欄,互不覆寫對方文字。"""
+
+    def test_core_and_emperorbtc_write_separate_columns(self, session):
+        upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT", "close": 50000.0},
+                      "core摘要文字", variant="core")
+        row = upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT", "close": 50001.0},
+                            "emperorbtc摘要文字", variant="emperorbtc")
+        assert row.context_summary == "core摘要文字"
+        assert row.context_summary_emperorbtc == "emperorbtc摘要文字"
+
+    def test_default_variant_is_core(self, session):
+        row = upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT",
+                                      "close": 50000.0}, "summary")
+        assert row.context_summary == "summary"
+        assert row.context_summary_emperorbtc is None
+
+
+class TestSchemaAutoMigration:
+    """get_session() 對已存在的舊版 DB 自動補齊 schema.py 新增的欄位,不需手動 ALTER TABLE。"""
+
+    def test_missing_column_on_existing_table_gets_added(self, tmp_path):
+        db_path = tmp_path / "legacy.db"
+        con = sqlite3.connect(str(db_path))
+        # 模擬缺少 context_summary_emperorbtc 的舊版 market_data 表(其餘欄位齊全)
+        con.execute("""CREATE TABLE market_data (
+            id INTEGER PRIMARY KEY, date VARCHAR NOT NULL, asset VARCHAR NOT NULL,
+            open_price FLOAT, high_price FLOAT, low_price FLOAT, close_price FLOAT,
+            volume FLOAT, funding_rate FLOAT, open_interest FLOAT,
+            context_summary TEXT, snapshot_captured_at VARCHAR
+        )""")
+        con.commit()
+        con.close()
+
+        session = get_session(f"sqlite:///{db_path}")
+        row = upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT",
+                                      "close": 50000.0}, "emperorbtc摘要", variant="emperorbtc")
+        assert row.context_summary_emperorbtc == "emperorbtc摘要"
+
+    def test_no_op_when_schema_already_complete(self, tmp_path):
+        # 已是最新 schema 時重複呼叫 get_session() 不應報錯、不應遺失既有資料
+        db_url = f"sqlite:///{tmp_path / 'fresh.db'}"
+        session = get_session(db_url)
+        upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT",
+                                "close": 50000.0}, "summary")
+        session2 = get_session(db_url)
+        row = session2.query(MarketData).filter_by(date="2026-01-01", asset="BTC/USDT").one()
+        assert row.context_summary == "summary"
 
 
 class TestFillOutcomes:

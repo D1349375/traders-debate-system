@@ -26,6 +26,8 @@
 
 - [ ] **考慮接入 DXY 資料,供 EmperorBTC 使用**:確認其 SKILL.md Step 2 第4維度明確以「DXY 方向(走弱利多風險資產)」判斷 BTC/ETH(風險資產)方向,屬其框架真實依賴的宏觀輸入,非其他兩人格所需——符合 README §3.4 資訊不對稱設計的觸發條件。**工程量級較高**(Binance/ccxt 無 DXY,需另接外匯/指數資料源,非現有管線可直接擴充),且他 SKILL.md 已內建資料缺口的坦白機制(缺 DXY 時明講「這是我看不到的維度」並降信心)。建議待三人格正式樣本累積一段時間、觀察到此缺口實際拖累判斷品質後再啟動,不急於現在動工
 - [x] ICT/TJR SKILL.md 新增「資料使用邊界」規範(2026-07-20):禁止引用成交量作判斷依據,追查 dry-run 發現的「帶量」「量縮」語句屬敘事層無傷大雅描述(R2 反駁確認實際判斷邏輯未依賴成交量),但為避免報告可讀性混淆與未來真正污染風險,明文禁止;preregistration §8 已記錄,ICT 兩份鏡像已同步
+- [x] **摘要 v4:真正的資訊分流(2026-07-21)**:市場摘要拆成 `core`(ICT/TJR共用,無成交量)/`emperorbtc`(專屬,含成交量+RSI(14)+近7日量能比值,程式碼算非LLM生成)兩變體,取代先前「看得到但不准用」的作法;明確排除 POC/value area(涉及分箱/lookback方法論選擇,等於代人格做詮釋決定)與 swing high/low 預先計算(抽查 07-20 凍結資料未發現任何 LLM 計算誤差,無實證問題不預修)。`main.py market` 新增 `--variant`,`database/schema.py` 新增 `context_summary_emperorbtc`,trader-debate SKILL.md 僅動 Step 1/2/3/6(人格 SKILL.md 三份皆未改動);`protocol_version` 升 `v4-2026-07-21`;54 pytest 全過(含真實行情 smoke test 驗證兩變體輸出正確);preregistration §8 已記錄完整決策脈絡(含與上一條「架構重寫需基準期」承諾的關係說明)
+- [x] **DB schema 自動遷移(2026-07-21)**:`database/db.py` 的 `get_session()` 新增 `_sync_schema()`,每次呼叫自動比對既有 DB 欄位與 schema.py 宣告差異,缺什麼自動 `ALTER TABLE ADD COLUMN` 補齊(新欄位一律 NULL)。動機:此欄位遷移手動做過三次(`snapshot_captured_at`/`intraday_scenario`/`context_summary_emperorbtc`),協作者在其他機器 pull 新 schema 後首次執行會撞到 `no such column`,自動化後不再需要手動介入或另外寫文件提醒;54 pytest 含此機制的邊界測試(模擬舊表補欄位、schema已最新時的 no-op)
 
 ## 進行中討論
 - [ ] **回測支線（探索性,2026-02~07-14 半乾淨區）待與使用者討論後啟動**,懸而未決:(a) 語料稽核判定標準多嚴——提到 BTC/ETH 就剔除該日,還是要具體到價位/方向才剔除;(b) pilot 30 天怎麼選——隨機抽 vs 連續段;(c) 探索性預登記是否也走使用者簽署流程。背景見 `回測污染分析_雙層記憶.md`。**有賞味期限:模型升級到更新知識截止日即失效,要做要趁早**

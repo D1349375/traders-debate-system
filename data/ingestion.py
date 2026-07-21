@@ -10,6 +10,15 @@ v3(2026-07-20,對齊 intraday_scenario 必填欄位):新增 1H(48根≈2天)/15M
 5M(48根≈4小時)三個日內時間框架,修正原本只有週/日/4H 時人格傾向給出中週期波段判斷、
 缺乏日內顆粒度支撐「今日收盤前雙劇本」要求的問題。5M 刻意限縮在 4 小時(非整天),
 避免與 15M 的一天覆蓋範圍大量重疊、徒增成本卻無新資訊。
+
+v4(2026-07-21,真正的資訊分流,見 preregistration.md §8):摘要拆成兩個變體,不再是單一共用文字:
+- variant="core"(ICT/TJR共用):K線CSV**不含成交量欄位**,無RSI/量能區塊——兩人SKILL.md本就明文禁止
+  引用成交量與RSI,這次直接讓資料層面就不存在,而非「看得到但不准用」。
+- variant="emperorbtc"(專屬):K線CSV含成交量欄位,額外附「量能與動能指標」區塊(RSI(14)、近7日均量、
+  當前量/均量比值)——皆為程式碼算出的客觀公式值(非LLM生成文字),且刻意不做POC/value area:
+  後者需要決定分箱粒度/lookback window等方法論參數,等於替他做了一次框架詮釋選擇,牴觸「詮釋權下放」
+  原則;RSI/均量比值是無方法論爭議的單一公式,不受此限。swing high/low 未加入計算層——實測抽查(對照
+  2026-07-20 凍結行情原始K線與當日報告引用價位)未發現任何計算誤差,沒有實證問題不需要預先修。
 """
 import ccxt
 import datetime
@@ -31,28 +40,74 @@ def select_closed(rows, tf_ms, as_of_ms, count):
     return closed[-count:]
 
 
-def format_candles(rows):
-    """OHLCV → CSV 文字表格(date,open,high,low,close,volume)。"""
-    lines = ["date,open,high,low,close,volume"]
+def format_candles(rows, include_volume=True):
+    """OHLCV → CSV 文字表格。include_volume=False 時連欄位都不出現(不是留空),
+    供 core 變體(ICT/TJR)使用——避免明文禁用成交量的人格「看得到但被要求不用」。"""
+    header = "date,open,high,low,close,volume" if include_volume else "date,open,high,low,close"
+    lines = [header]
     for ts, o, h, l, c, v in rows:
         d = datetime.datetime.fromtimestamp(ts / 1000, tz=datetime.timezone.utc)
-        lines.append(f"{d.strftime('%Y-%m-%d %H:%M')},{o},{h},{l},{c},{v}")
+        row = f"{d.strftime('%Y-%m-%d %H:%M')},{o},{h},{l},{c}"
+        if include_volume:
+            row += f",{v}"
+        lines.append(row)
     return "\n".join(lines)
 
 
-def compose_summary_v2(asset, judgment_date, sections, funding_now, funding_avg7, snapshot):
-    """組裝 v2 摘要全文。
+def compute_rsi(closes, period=14):
+    """Wilder's RSI(業界標準公式,單一定義無方法論爭議)。
+
+    closes 需至少 period+1 筆(依時間升冪排列);不足回 None,誠實揭露而非硬湊。
+    """
+    if len(closes) < period + 1:
+        return None
+    gains, losses = [], []
+    for i in range(1, len(closes)):
+        change = closes[i] - closes[i - 1]
+        gains.append(max(change, 0.0))
+        losses.append(max(-change, 0.0))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(gains)):
+        avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+        avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return round(100 - (100 / (1 + rs)), 2)
+
+
+def compute_volume_ratio(volumes, window=7):
+    """近 window 筆均量(不含當前這筆,避免自己除自己)、當前量、比值。
+
+    volumes 依時間升冪排列,最後一筆為當前。不足 window+1 筆回 (None, None, None)。
+    """
+    if len(volumes) < window + 1:
+        return None, None, None
+    current = volumes[-1]
+    baseline = volumes[-(window + 1):-1]
+    avg = sum(baseline) / window
+    ratio = round(current / avg, 3) if avg else None
+    return round(avg, 2), round(current, 2), ratio
+
+
+def compose_summary_v2(asset, judgment_date, sections, funding_now, funding_avg7, snapshot, variant="core"):
+    """組裝 v2/v3 摘要全文,依 variant 決定資訊分流內容(v4,見模組docstring)。
 
     sections: list of (timeframe, rows);snapshot: dict(price, change_24h, high, low, note)
+    variant="core"(預設,ICT/TJR共用):不含成交量、無量能/RSI區塊。
+    variant="emperorbtc":含成交量CSV欄位 + 額外「量能與動能指標」區塊。
     """
+    include_volume = (variant == "emperorbtc")
+    vol_note = "date,open,high,low,close,volume" if include_volume else "date,open,high,low,close"
     parts = [
         f"【{asset} 市場多時間框架摘要 | 判斷日: {judgment_date}】",
-        "以下 K 線均為判斷時點前已完整收盤的數據(UTC)。CSV 欄位:date,open,high,low,close,volume",
+        f"以下 K 線均為判斷時點前已完整收盤的數據(UTC)。CSV 欄位:{vol_note}",
         "",
     ]
     for tf, rows in sections:
         parts.append(f"=== {_TF_LABEL[tf]}(最近 {len(rows)} 根已收盤)===")
-        parts.append(format_candles(rows))
+        parts.append(format_candles(rows, include_volume=include_volume))
         parts.append("")
     parts.append("=== 永續合約資金費率 ===")
     if funding_now is None:
@@ -61,6 +116,20 @@ def compose_summary_v2(asset, judgment_date, sections, funding_now, funding_avg7
         avg_txt = f",近 7 日均值 {funding_avg7:.6f}" if funding_avg7 is not None else ""
         parts.append(f"當期 {funding_now:.6f}{avg_txt}(正=多方付費)")
     parts.append("")
+    if variant == "emperorbtc":
+        daily_rows = next((rows for tf, rows in sections if tf == "1d"), [])
+        closes = [r[4] for r in daily_rows]
+        volumes = [r[5] for r in daily_rows]
+        rsi = compute_rsi(closes, period=14)
+        avg_vol, cur_vol, vol_ratio = compute_volume_ratio(volumes, window=7)
+        parts.append("=== 量能與動能指標(程式碼計算,非LLM生成文字;僅本變體提供) ===")
+        parts.append(f"日線 RSI(14): {rsi if rsi is not None else '資料不足,無法計算'}")
+        if avg_vol is not None:
+            trend = "高於均量" if vol_ratio > 1 else ("低於均量" if vol_ratio < 1 else "與均量持平")
+            parts.append(f"日線近 7 日均量: {avg_vol},當前日量: {cur_vol},比值: {vol_ratio}({trend})")
+        else:
+            parts.append("日線量能比值: 資料不足,無法計算")
+        parts.append("")
     parts.append("=== 當下快照 ===")
     parts.append(f"價格: {snapshot['price']}")
     if snapshot.get("change_24h") is not None:
@@ -105,11 +174,13 @@ def _fetch_funding(symbol, as_of_ms, live):
         return None, None
 
 
-def build_market_context(symbol="BTC/USDT", as_of=None):
-    """產生 v2 摘要與 DB 落地資料。
+def build_market_context(symbol="BTC/USDT", as_of=None, variant="core"):
+    """產生 v2/v3 摘要與 DB 落地資料。
 
     as_of=None → 實盤模式(判斷日=今日 UTC,快照=即時價)
     as_of="YYYY-MM-DD" → 回測模式(快照=該日開盤價近似,見設計文件 §3)
+    variant="core"|"emperorbtc" → 資訊分流(v4,見模組docstring),決定文字摘要內容;
+    不影響落地的 OHLC 事實(data_dict 兩變體皆相同,只是各自獨立抓取的即時讀數)。
     回傳 (data_dict, summary_text);失敗回 (None, None)。
     """
     exchange = ccxt.binance({"enableRateLimit": True})
@@ -158,7 +229,7 @@ def build_market_context(symbol="BTC/USDT", as_of=None):
                     "funding_rate": funding_now, "snapshot_captured_at": snapshot_captured_at}
 
         summary = compose_summary_v2(symbol, judgment_date, sections,
-                                     funding_now, funding_avg7, snapshot)
+                                     funding_now, funding_avg7, snapshot, variant=variant)
         return data, summary
     except Exception as e:
         print(f"抓取 {symbol} 行情失敗: {e}")

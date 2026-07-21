@@ -1,5 +1,6 @@
-"""摘要 v2 純函數測試:已收盤判定邊界、CSV 格式、摘要組裝。"""
-from data.ingestion import select_closed, format_candles, compose_summary_v2
+"""摘要 v2/v4 純函數測試:已收盤判定邊界、CSV 格式、摘要組裝、資訊分流(core/emperorbtc)。"""
+from data.ingestion import (select_closed, format_candles, compose_summary_v2,
+                            compute_rsi, compute_volume_ratio)
 
 DAY = 86400 * 1000
 
@@ -38,6 +39,59 @@ class TestFormatCandles:
     def test_empty_gives_header_only(self):
         assert format_candles([]) == "date,open,high,low,close,volume"
 
+    def test_include_volume_false_omits_column_entirely(self):
+        text = format_candles([candle(0)], include_volume=False)
+        lines = text.split("\n")
+        assert lines[0] == "date,open,high,low,close"
+        assert "volume" not in text
+        assert lines[1].count(",") == 4  # date + 4 數值欄位,無第5個逗號分隔的volume
+
+
+class TestComputeRSI:
+    def test_insufficient_data_returns_none(self):
+        assert compute_rsi([100.0] * 10, period=14) is None
+
+    def test_monotonic_increase_near_100(self):
+        closes = [100.0 + i for i in range(20)]
+        rsi = compute_rsi(closes, period=14)
+        assert rsi > 95
+
+    def test_monotonic_decrease_near_0(self):
+        closes = [100.0 - i for i in range(20)]
+        rsi = compute_rsi(closes, period=14)
+        assert rsi < 5
+
+    def test_flat_prices_no_movement(self):
+        # avg_gain=avg_loss=0 → 依慣例(avg_loss==0)回 100
+        rsi = compute_rsi([100.0] * 20, period=14)
+        assert rsi == 100.0
+
+    def test_exact_minimum_length_computes(self):
+        closes = [100.0 + i for i in range(15)]  # period+1 = 15 筆,邊界值
+        assert compute_rsi(closes, period=14) is not None
+
+
+class TestComputeVolumeRatio:
+    def test_insufficient_data_returns_none_triplet(self):
+        assert compute_volume_ratio([10.0] * 5, window=7) == (None, None, None)
+
+    def test_exact_minimum_length_computes(self):
+        volumes = [10.0] * 7 + [20.0]  # window+1 = 8 筆,邊界值
+        avg, cur, ratio = compute_volume_ratio(volumes, window=7)
+        assert avg == 10.0 and cur == 20.0 and ratio == 2.0
+
+    def test_current_excluded_from_baseline_average(self):
+        # 若當前這筆(1000)被誤算進均量,比值會被嚴重低估
+        volumes = [10.0] * 7 + [1000.0]
+        avg, cur, ratio = compute_volume_ratio(volumes, window=7)
+        assert avg == 10.0  # 不含當前這筆
+        assert ratio == 100.0
+
+    def test_zero_baseline_avg_ratio_is_none(self):
+        volumes = [0.0] * 7 + [5.0]
+        avg, cur, ratio = compute_volume_ratio(volumes, window=7)
+        assert avg == 0.0 and ratio is None
+
 
 class TestComposeSummary:
     def _snapshot(self):
@@ -64,3 +118,28 @@ class TestComposeSummary:
                                [("1d", [candle(0)])], None, None, snap)
         assert "回測模式" in s
         assert "盤中高/低" not in s  # 回測模式不得出現盤中資訊
+
+    def test_core_variant_has_no_volume_or_indicator_section(self):
+        s = compose_summary_v2("BTC/USDT", "2026-07-19",
+                               [("1d", [candle(i * DAY) for i in range(20)])],
+                               0.0001, 0.00005, self._snapshot(), variant="core")
+        assert "volume" not in s
+        assert "量能與動能指標" not in s
+        assert "CSV 欄位:date,open,high,low,close" in s
+        assert "close,volume" not in s
+
+    def test_emperorbtc_variant_has_volume_and_indicator_section(self):
+        s = compose_summary_v2("BTC/USDT", "2026-07-19",
+                               [("1d", [candle(i * DAY) for i in range(20)])],
+                               0.0001, 0.00005, self._snapshot(), variant="emperorbtc")
+        assert "close,volume" in s
+        assert "量能與動能指標" in s
+        assert "RSI(14)" in s
+        assert "均量" in s
+
+    def test_default_variant_is_core(self):
+        s_default = compose_summary_v2("BTC/USDT", "2026-07-19",
+                                       [("1d", [candle(0)])], None, None, self._snapshot())
+        s_core = compose_summary_v2("BTC/USDT", "2026-07-19",
+                                    [("1d", [candle(0)])], None, None, self._snapshot(), variant="core")
+        assert s_default == s_core

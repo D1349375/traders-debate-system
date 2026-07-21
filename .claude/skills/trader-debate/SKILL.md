@@ -32,22 +32,28 @@ description: >-
 
 ## 流程(對每個標的獨立走完 Step 1-4)
 
-### Step 1 — 抓行情(輸入凍結)
-**先檢查 `data/market_context/<date>_<asset代碼>.txt` 是否已存在**(asset代碼=去掉斜線,如 BTCUSDT):
+### Step 1 — 抓行情(輸入凍結 + 資訊分流)
+**資訊分流(v4,見 preregistration.md §8)**:每個標的要凍結**兩份**檔案,不是一份——ICT/TJR 共用 `core` 變體(無成交量),EmperorBTC 專屬 `emperorbtc` 變體(含成交量 + RSI + 量能比值)。兩變體的差異定義在 `data/ingestion.py`,orchestrator 不需要、也不應該自己詮釋或補充指標,照抓照存即可。
+
+**先檢查 `data/market_context/<date>_<asset代碼>_<variant>.txt` 是否已存在**(asset代碼=去掉斜線如 BTCUSDT;variant=`core`或`emperorbtc`,兩者分開判斷):
 - **已存在 → 必須直接重用該檔,不得重抓**。同一判斷日的所有 run(含 dry-run、含不同協作者)都吃同一份凍結輸入,否則跨 run 不可比。
-- 不存在 → 抓行情並落檔:
+- 不存在 → 抓行情並落檔(每個標的兩條指令,共用/專屬各一):
 ```
-venv\Scripts\python.exe main.py market --asset BTC/USDT > data\market_context\<date>_BTCUSDT.txt
-venv\Scripts\python.exe main.py market --asset ETH/USDT > data\market_context\<date>_ETHUSDT.txt
+venv\Scripts\python.exe main.py market --asset BTC/USDT --variant core       > data\market_context\<date>_BTCUSDT_core.txt
+venv\Scripts\python.exe main.py market --asset BTC/USDT --variant emperorbtc > data\market_context\<date>_BTCUSDT_emperorbtc.txt
+venv\Scripts\python.exe main.py market --asset ETH/USDT --variant core       > data\market_context\<date>_ETHUSDT_core.txt
+venv\Scripts\python.exe main.py market --asset ETH/USDT --variant emperorbtc > data\market_context\<date>_ETHUSDT_emperorbtc.txt
 ```
-輸出第一行是 `{"date": ..., "asset": ...}`,其後是行情摘要全文。記下 date/asset。
+輸出第一行是 `{"date": ..., "asset": ..., "variant": ...}`,其後是行情摘要全文。記下 date/asset。
+兩變體是各自獨立的即時抓取,即時價格可能有數秒級落差(遠小於 Neutral 門檻,不需處理,`snapshot_captured_at` 已誠實記錄實際抓取時間)。
 凍結檔應隨 git 提交,讓協作者重跑時拿到同一份輸入。
 
 ### Step 2 — R1 獨立盲判
 對**每個生效人格 × 每個標的**各開一個獨立 subagent(Agent 工具,general-purpose 即可),可全部平行:
 
 - **prompt 必須逐字使用 `templates/r1_prompt.txt`,只填充 `{佔位符}`,不得增刪或改寫任何語句**(prompt 措辭差異會系統性平移輸出分佈,見「隨機性控制」)。人格 SKILL.md 路徑:ICT=`.claude/skills/ict-perspective/SKILL.md`,其餘同模式。
-- **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊;也不得混入其他標的的摘要**(逐標的獨立判斷,歸因才乾淨)
+- **`{MARKET_CONTEXT_PATH}` 依人格分流填值,不是固定同一份**:EmperorBTC 填 `..._emperorbtc.txt`;ICT、TJR 填 `..._core.txt`。填錯等於資訊分流失效,務必對照 Step 1 的檔名。
+- **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊;也不得混入其他標的的摘要,也不得把 emperorbtc 變體的內容用於 ICT/TJR(或反之)**(逐標的、逐分流獨立判斷,歸因才乾淨)
 - 輸出格式已寫死在模板內,含**必答項 `intraday_scenario`**(今日收盤前雙劇本 if-then,範圍限定判斷日當天,不得是多日/週目標;詳細規格見模板檔本身,不在此重複)。
 
 收齊後寫入暫存 JSON 檔(scratchpad),每筆補上 `date`/`asset`/`persona`/`round`(=1)/`model_id`(subagent 實際使用的模型 ID),然後:
@@ -59,6 +65,7 @@ venv\Scripts\python.exe main.py record --json <r1檔案路徑>
 單人格直接跳到 Step 4。多人格時,對每個人格再開 subagent:
 
 - **prompt 必須逐字使用 `templates/r2_prompt.txt`,只填充 `{佔位符}`**。R1 各家輸出先整理成單一 JSON 檔(scratchpad,含 direction/confidence/reasoning/intraday_scenario 四欄,不含過程全文),路徑填入 `{R1_JSON_PATH}`。
+- `{MARKET_CONTEXT_PATH}` 分流規則與 Step 2 相同:EmperorBTC 填 `..._emperorbtc.txt`,ICT/TJR 填 `..._core.txt`,不得填錯或混用。
 - 協議必答項 (a)(b)(c)(d) 與輸出格式(JSON 加 `falsifier`、`intraday_scenario` 兩欄)已寫死在模板內。(d) = 更新後的 `intraday_scenario`,範圍限制同 Step 2,可沿用 R1 版本但須重新確認仍成立,不可留空。
 
 record 落地(round=2)。
@@ -81,8 +88,10 @@ finalize 會自動:R1 旁路聚合(無辯論基準)+ 末輪最終聚合 + 分歧
 2. **版型**:照抄 `templates/` 下的參考版型結構,只換當日內容,不重新設計:
    - `templates/report_reference.html` — HTML 版。含 SVG K 線圖(60 根日線 + 量能副圖 + hover tooltip)、
      各人格關鍵價位標註(levels/zones/events 寫在 `CONF` 物件)、偏見對比卡、聚合算式、人格卡(含
-     `<details>` 完整論述與 falsifier)、辯論結構盒、方法論備註、免責聲明。日線數據從 Step 1 的
-     market 輸出解析成 JSON 注入 `const DATA`(參考版型內已有注入點格式)。**注意保留 `<meta charset="utf-8">`。**
+     `<details>` 完整論述與 falsifier)、辯論結構盒、方法論備註、免責聲明。日線數據(含量能副圖需要的
+     volume)從 Step 1 的 `..._emperorbtc.txt`(唯一含成交量的變體)解析成 JSON 注入 `const DATA`
+     (參考版型內已有注入點格式)——**這只是報告視覺化用途,不影響任何人格的判斷輸入**,ICT/TJR 的
+     R1/R2 prompt 仍只讀 `..._core.txt`。**注意保留 `<meta charset="utf-8">`。**
    - `templates/report_reference.md` — Markdown 版。同樣結構,K 線圖以「關鍵價位表 + 事件標記」代替。
 3. **報告內容鐵律**(承襲裁判邊界):兩種格式都必須同時呈現**單人格基準(生效人格 R1)**與
    **辯論後聚合**兩欄;所有敘述只描述各方立場與分歧,不得出現你自己的方向判斷;

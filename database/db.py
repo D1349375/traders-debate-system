@@ -7,7 +7,7 @@
 import datetime
 import os
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker
 
 from database.schema import Base, MarketData, PersonaDebate, DailyBiasResult
@@ -16,9 +16,33 @@ from engine.aggregate import aggregate, disagreement, VALID_DIRECTIONS
 _DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'debate_system.db')
 
 
+def _sync_schema(engine):
+    """為已存在的 DB 檔案自動補上 schema.py 之後新增的欄位(ALTER TABLE ADD COLUMN)。
+
+    create_all() 只會建「不存在的表」,對既有表不會補新增欄位——這是 SQLAlchemy/SQLite 的既定限制,
+    不是 bug。本專案至今已手動撞到三次(snapshot_captured_at/intraday_scenario/
+    context_summary_emperorbtc),故改自動化,避免第四次。只新增缺的欄位,不改型別、不刪欄位、
+    不搬移資料;新欄位一律 NULL,如實反映「舊紀錄當時沒有這項資訊」,與既有的手動遷移精神一致。
+    """
+    inspector = inspect(engine)
+    existing_tables = set(inspector.get_table_names())
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if table.name not in existing_tables:
+                continue  # 全新的表,create_all() 已經建出完整欄位,不需要補
+            existing_cols = {c['name'] for c in inspector.get_columns(table.name)}
+            for col in table.columns:
+                if col.name in existing_cols:
+                    continue
+                col_type = col.type.compile(dialect=engine.dialect)
+                conn.execute(text(f'ALTER TABLE {table.name} ADD COLUMN {col.name} {col_type}'))
+                print(f"[自動遷移] {table.name} 新增欄位 {col.name} ({col_type})")
+
+
 def get_session(db_url=None):
     engine = create_engine(db_url or f"sqlite:///{_DB_FILE}")
     Base.metadata.create_all(engine)
+    _sync_schema(engine)
     return sessionmaker(bind=engine)()
 
 
@@ -26,8 +50,15 @@ def _now_iso():
     return datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-def upsert_market(session, data, summary):
-    """行情快照可重抓更新(它不是判斷,不受落地不改約束)。"""
+def upsert_market(session, data, summary, variant="core"):
+    """行情快照可重抓更新(它不是判斷,不受落地不改約束)。
+
+    variant="core"(ICT/TJR共用摘要)寫入 context_summary;
+    variant="emperorbtc"(專屬摘要,含成交量/RSI)寫入 context_summary_emperorbtc;
+    兩變體分開存欄,同一 (date, asset) 兩次呼叫(各一變體)不會互相覆蓋對方的文字內容。
+    OHLC/資金費率等數值欄位仍為同一行情事實,兩次呼叫皆會更新(後呼叫者的讀數為準,
+    差異僅為兩次即時抓取間的數秒級價格漂移,遠小於 Neutral 門檻,不需要額外處理)。
+    """
     row = session.query(MarketData).filter_by(date=data['date'], asset=data['asset']).one_or_none()
     if row is None:
         row = MarketData(date=data['date'], asset=data['asset'])
@@ -39,7 +70,10 @@ def upsert_market(session, data, summary):
     row.volume = data.get('volume')
     row.funding_rate = data.get('funding_rate')
     row.open_interest = data.get('open_interest')
-    row.context_summary = summary
+    if variant == "emperorbtc":
+        row.context_summary_emperorbtc = summary
+    else:
+        row.context_summary = summary
     row.snapshot_captured_at = data.get('snapshot_captured_at')
     session.commit()
     return row

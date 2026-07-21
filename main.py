@@ -4,7 +4,7 @@ LLM 推理不在這裡發生:人格判斷由 Claude Code subagent 產生(C 架�
 本 CLI 只負責行情抓取與 DB 落地。協議見 README 第 3 節。
 
 用法:
-  python main.py market   [--asset BTC/USDT]         抓行情、寫入 market_data、印出摘要
+  python main.py market   [--asset BTC/USDT] [--variant core|emperorbtc]   抓行情、寫入 market_data、印出摘要
   python main.py record   --json <file>              落地人格判斷(單筆物件或列表)
   python main.py finalize --date YYYY-MM-DD --asset BTC/USDT [--summary-file <file>]
   python main.py outcomes                            回填已收K線的事後價格
@@ -23,18 +23,20 @@ from database.db import get_session, upsert_market, record_opinion, finalize, fi
 
 # v2-2026-07-19:摘要升級為多時間框架資訊集(週52/日90/4h42+費率+快照,見 市場摘要v2_資訊集設計.md)
 # v3-2026-07-20:新增 1H/15M/5M 日內時間框架 + intraday_scenario 必填欄位(見 preregistration.md §8)
+# v4-2026-07-21:摘要拆為 core(ICT/TJR,無成交量)/emperorbtc(含成交量+RSI+量能比值)兩變體,
+#   真正的資訊分流而非「看得到但不准用」(見 preregistration.md §8)
 # 協議不變:兩輪固定,R1 盲判 → R2 結構化反駁;單人格只跑 R1
-PROTOCOL_VERSION = "v3-2026-07-20"
+PROTOCOL_VERSION = "v4-2026-07-21"
 
 
 def cmd_market(args):
-    data, summary = build_market_context(args.asset, as_of=args.as_of)
+    data, summary = build_market_context(args.asset, as_of=args.as_of, variant=args.variant)
     if not data:
         print("抓取行情失敗", file=sys.stderr)
         return 1
     session = get_session()
-    upsert_market(session, data, summary)
-    print(json.dumps({"date": data["date"], "asset": data["asset"]}, ensure_ascii=False))
+    upsert_market(session, data, summary, variant=args.variant)
+    print(json.dumps({"date": data["date"], "asset": data["asset"], "variant": args.variant}, ensure_ascii=False))
     print(summary)
     return 0
 
@@ -99,6 +101,8 @@ def main():
     p.add_argument("--asset", default="BTC/USDT")
     p.add_argument("--as-of", dest="as_of", default=None,
                    help="回測模式:YYYY-MM-DD(快照=該日開盤價近似);省略=實盤模式")
+    p.add_argument("--variant", choices=["core", "emperorbtc"], default="core",
+                   help="資訊分流變體:core=ICT/TJR共用(預設,無成交量);emperorbtc=專屬(含成交量+RSI+量能比值)")
     p.set_defaults(fn=cmd_market)
 
     p = sub.add_parser("record", help="落地人格判斷(JSON 檔)")
