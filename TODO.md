@@ -15,7 +15,17 @@
 - [x] 語料洩漏處理方式已定（2026-07-19）：走「等新資料」路線——每日前瞻累積,不回測語料涵蓋期（已寫入 preregistration 草案 §5）
 - [x] 預登記生效（2026-07-19 使用者確認）：雙標的 BTC ±0.5% / ETH ±1.0%、1d 主地平線、n≥30/60 逐標的、報告必附門檻敏感度附錄與修改建議 → `preregistration.md`
 - [x] 每日累積已啟動:**首筆 2026-07-19 落地**(BTC+ETH 各一筆,ICT R1)。之後每天對 Claude Code 說「跑今日 bias」
-- [ ] n≥30 前實作 `bias_report_metrics.py`：方向命中率 + Brier Score/校準曲線 + MCPT + Neutral 門檻敏感度附錄,強制表+圖,附 pytest（Phase4規劃 2.1/§7.4、preregistration §5）
+- [x] schema 補 `snapshot_captured_at`(2026-07-20):`market_data`/`daily_bias_results` 新增欄位,回測模式=as-of 日 00:00 UTC 參考點、實盤模式=真實抓取時間;既有 3 筆真實紀錄已用 ALTER TABLE 遷移(舊資料該欄位為 NULL,誠實反映當時未記錄);36 pytest 全過。搭配 preregistration §8「每日執行時間紀律(UTC 00:00-01:00)」
+- [ ] n≥30 前實作 `bias_report_metrics.py`：方向命中率 + Brier Score/校準曲線 + MCPT + Neutral 門檻敏感度附錄,強制表+圖,附 pytest（Phase4規劃 2.1/§7.4、preregistration §5）。**必須包含逐人格命中率對比**(ICT/TJR/EmperorBTC 各自單獨命中率 vs 辯論後聚合命中率,Phase4規劃 §2.2 ensemble lift)——`persona_debates` 已逐人格逐輪記錄,不需新增資料收集;**但比較 3 人格+1 聚合=4 路比較,判定「誰更準」前必須套用 BH-FDR 校正(Phase4規劃 §7.5),不可挑單獨表現最好的人格就下結論**
+
+- [x] 三人格正式生效(2026-07-20,preregistration §8 增補已寫入,ICT+TJR+EmperorBTC)
+- [x] 執行時間紀律定案:UTC 00:00-01:00(台灣 08:00-09:00),窗口錯過當日盡快補跑不跳過,真死線是隔日 UTC 00:00;`snapshot_captured_at` 欄位已補(schema+db.py+ingestion.py,37 pytest 全過)
+- [x] 新增必填欄位 `intraday_scenario`(2026-07-20):R1/R2 皆強制填今日收盤前雙劇本 if-then,範圍限定當天,修正 dry-run 觀察到的地平線錯配問題;schema/db.py/main.py/trader-debate SKILL.md(兩份鏡像)已同步,37 pytest 全過,preregistration §8 已記錄
+- [x] 摘要 v3(2026-07-20):新增 1H(48)/15M(96)/5M(48,4小時)三個日內時間框架,配合 `intraday_scenario` 提供顆粒度支撐;K線 184→370 根,摘要 12.2KB→24.2KB,實測回測模式 6 個時間框架皆嚴格 walk-forward;`protocol_version` 升 v3-2026-07-20;preregistration §8 已記錄。TradingView 等外部資料源評估後否決(破壞回測/實盤一致性、疊加視覺判讀雜訊、無對應公開 API),維持 Binance/ccxt 架構
+- [x] **首次三人格正式樣本落地(2026-07-20)**:BTC(Bearish 76,分歧33%)、ETH(Bearish 100,分歧0%),v3 摘要+intraday_scenario+資料使用邊界規範首次正式應用;日報見 `data/reports/2026-07-20.md`
+
+- [ ] **考慮接入 DXY 資料,供 EmperorBTC 使用**:確認其 SKILL.md Step 2 第4維度明確以「DXY 方向(走弱利多風險資產)」判斷 BTC/ETH(風險資產)方向,屬其框架真實依賴的宏觀輸入,非其他兩人格所需——符合 README §3.4 資訊不對稱設計的觸發條件。**工程量級較高**(Binance/ccxt 無 DXY,需另接外匯/指數資料源,非現有管線可直接擴充),且他 SKILL.md 已內建資料缺口的坦白機制(缺 DXY 時明講「這是我看不到的維度」並降信心)。建議待三人格正式樣本累積一段時間、觀察到此缺口實際拖累判斷品質後再啟動,不急於現在動工
+- [x] ICT/TJR SKILL.md 新增「資料使用邊界」規範(2026-07-20):禁止引用成交量作判斷依據,追查 dry-run 發現的「帶量」「量縮」語句屬敘事層無傷大雅描述(R2 反駁確認實際判斷邏輯未依賴成交量),但為避免報告可讀性混淆與未來真正污染風險,明文禁止;preregistration §8 已記錄,ICT 兩份鏡像已同步
 
 ## 進行中討論
 - [ ] **回測支線（探索性,2026-02~07-14 半乾淨區）待與使用者討論後啟動**,懸而未決:(a) 語料稽核判定標準多嚴——提到 BTC/ETH 就剔除該日,還是要具體到價位/方向才剔除;(b) pilot 30 天怎麼選——隨機抽 vs 連續段;(c) 探索性預登記是否也走使用者簽署流程。背景見 `回測污染分析_雙層記憶.md`。**有賞味期限:模型升級到更新知識截止日即失效,要做要趁早**

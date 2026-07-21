@@ -20,9 +20,15 @@ description: >-
 
 ## 前置檢查
 
-1. 確認 `DebateSystem/preregistration.md` 存在且已生效(已生效:2026-07-19 版)。
+1. 確認 `DebateSystem/preregistration.md` 存在且已生效。
    **若不存在或被作廢:停下來,請使用者先完成預登記,不可累積紀錄。**
-2. 生效人格與標的以 preregistration 為準。現行:人格=ICT;標的=**BTC/USDT 與 ETH/USDT**(每天兩個標的都要跑)。
+2. **每次執行都重讀 preregistration.md §1 及 §8 全部增補條目,取得當下實際生效的人格清單與標的**——
+   不要依賴記憶或任何舊快照,生效名單會隨增補持續變動(例如 2026-07-20 由單一 ICT 擴增為
+   ICT+TJR+EmperorBTC 三人格)。人格 SKILL.md 路徑對照:
+   - ICT → `.claude/skills/ict-perspective/SKILL.md`
+   - TJR → `.claude/skills/tjr-perspective/SKILL.md`
+   - EmperorBTC → `.claude/skills/emperorbtc-perspective/SKILL.md`
+   標的:**BTC/USDT 與 ETH/USDT**(每天兩個標的都要跑,除非 preregistration 增補另有標的變更)。
 
 ## 流程(對每個標的獨立走完 Step 1-4)
 
@@ -36,11 +42,18 @@ venv\Scripts\python.exe main.py market --asset ETH/USDT
 ### Step 2 — R1 獨立盲判
 對**每個生效人格 × 每個標的**各開一個獨立 subagent(Agent 工具,general-purpose 即可),可全部平行:
 
-- prompt 組成:該人格的 SKILL.md 全文(ICT 在 `.claude/skills/ict-perspective/SKILL.md`,subagent 自行讀取)+ **該標的**的行情摘要 + 輸出格式要求
+- prompt 組成:該人格的 SKILL.md 全文(路徑見前置檢查步驟 2,subagent 自行讀取)+ **該標的**的行情摘要 + 輸出格式要求
 - **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊;也不得混入其他標的的摘要**(逐標的獨立判斷,歸因才乾淨)
+- **必答項:`intraday_scenario`(2026-07-20 起強制)**——今日收盤前的雙劇本 if-then,格式範例:
+  「我認為今日價格會先去摸 65000,後續出現反轉關注做空機會空到 60000;如果價格先下去摸 60000,
+  那就關注做多到 65000 的機會」。**範圍限制:劇本必須是今日(判斷日 UTC 收盤前)有機會發生的路徑,
+  不得是本週/本月的中週期波段目標**——若人格框架的自然目標本來就是多天級別,要求其明講「今天」在
+  那條路徑上處於哪個階段、今天最可能先走到哪一段,而不是直接搬多日目標充當今日劇本。此為必填項,
+  留空視為未完成回應,須要求 subagent 補齊。
 - 要求輸出嚴格 JSON:
 ```json
-{"direction": "Bullish|Bearish|Neutral", "confidence": 0-100, "reasoning": "以該人格口吻與框架的完整分析"}
+{"direction": "Bullish|Bearish|Neutral", "confidence": 0-100, "reasoning": "以該人格口吻與框架的完整分析",
+ "intraday_scenario": "今日收盤前的雙劇本 if-then,範圍限定在今天"}
 ```
 
 收齊後寫入暫存 JSON 檔(scratchpad),每筆補上 `date`/`asset`/`persona`/`round`(=1)/`model_id`(subagent 實際使用的模型 ID),然後:
@@ -56,7 +69,8 @@ venv\Scripts\python.exe main.py record --json <r1檔案路徑>
    - (a) 指出**與你對立的最強論點**並正面回應(不准挑最弱的打)
    - (b) 給出 falsifier:什麼證據出現會讓你改判
    - (c) 更新後的 direction/confidence(可以不變,但要說明為何不變)
-3. 輸出 JSON 加一欄 `falsifier`
+   - (d) 更新後的 `intraday_scenario`(範圍限制同 Step 2,可沿用 R1 版本但須重新確認仍成立,不可留空)
+3. 輸出 JSON 加兩欄 `falsifier`、`intraday_scenario`
 
 record 落地(round=2)。
 

@@ -9,10 +9,11 @@ def session(tmp_path):
     return get_session(f"sqlite:///{tmp_path / 'test.db'}")
 
 
-def rec(session, persona, round_, direction, conf, date="2026-01-01"):
+def rec(session, persona, round_, direction, conf, date="2026-01-01", intraday_scenario="test scenario"):
     return record_opinion(session, date=date, asset="BTC/USDT", persona=persona,
                           round_=round_, direction=direction, confidence=conf,
-                          reasoning="test", model_id="test-model")
+                          reasoning="test", intraday_scenario=intraday_scenario,
+                          model_id="test-model")
 
 
 class TestRecord:
@@ -20,6 +21,12 @@ class TestRecord:
         rec(session, "ict", 1, "Bullish", 70)
         with pytest.raises(ValueError, match="不可覆寫"):
             rec(session, "ict", 1, "Bearish", 30)
+
+    def test_intraday_scenario_required(self, session):
+        with pytest.raises(ValueError, match="intraday_scenario 為必填"):
+            rec(session, "ict", 1, "Bullish", 70, intraday_scenario=None)
+        with pytest.raises(ValueError, match="intraday_scenario 為必填"):
+            rec(session, "ict", 1, "Bullish", 70, intraday_scenario="   ")
 
     def test_invalid_round_raises(self, session):
         with pytest.raises(ValueError):
@@ -56,6 +63,18 @@ class TestFinalize:
         finalize(session, date="2026-01-01", asset="BTC/USDT", protocol_version="test")
         with pytest.raises(ValueError, match="不可覆寫"):
             finalize(session, date="2026-01-01", asset="BTC/USDT", protocol_version="test")
+
+    def test_snapshot_captured_at_propagates_from_market(self, session):
+        upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT", "close": 50000.0,
+                                "snapshot_captured_at": "2026-01-01T00:03:00Z"}, "summary")
+        rec(session, "ict", 1, "Bullish", 70)
+        r = finalize(session, date="2026-01-01", asset="BTC/USDT", protocol_version="test")
+        assert r.snapshot_captured_at == "2026-01-01T00:03:00Z"
+
+    def test_snapshot_captured_at_none_when_no_market_row(self, session):
+        rec(session, "ict", 1, "Bullish", 70)
+        r = finalize(session, date="2026-01-01", asset="BTC/USDT", protocol_version="test")
+        assert r.snapshot_captured_at is None
 
     def test_price_at_bias_from_market(self, session):
         upsert_market(session, {"date": "2026-01-01", "asset": "BTC/USDT",

@@ -1,17 +1,23 @@
 """行情抓取與摘要生成。
 
-v2(2026-07-19 起,設計見 市場摘要v2_資訊集設計.md):
+v2(2026-07-19,設計見 市場摘要v2_資訊集設計.md):
 - 多時間框架已收盤 K 線(週52/日90/4h42)+ 資金費率 + 當下快照
 - 中性資訊集:只給原始 OHLCV,不預算任何結構(FVG/壓力位/指標)
 - as_of 參數:實盤傳 None(=now),回測傳歷史日期 → 實盤與回測輸入格式位元級一致
 - 嚴格 walk-forward:K 線表只含 as-of 時點前已收盤者;未收盤資訊只進「當下快照」段
+
+v3(2026-07-20,對齊 intraday_scenario 必填欄位):新增 1H(48根≈2天)/15M(96根≈1天)/
+5M(48根≈4小時)三個日內時間框架,修正原本只有週/日/4H 時人格傾向給出中週期波段判斷、
+缺乏日內顆粒度支撐「今日收盤前雙劇本」要求的問題。5M 刻意限縮在 4 小時(非整天),
+避免與 15M 的一天覆蓋範圍大量重疊、徒增成本卻無新資訊。
 """
 import ccxt
 import datetime
 
-TIMEFRAMES_V2 = (("1w", 52), ("1d", 90), ("4h", 42))
-_TF_MS = {"1w": 7 * 86400 * 1000, "1d": 86400 * 1000, "4h": 4 * 3600 * 1000}
-_TF_LABEL = {"1w": "週線", "1d": "日線", "4h": "4小時線"}
+TIMEFRAMES_V2 = (("1w", 52), ("1d", 90), ("4h", 42), ("1h", 48), ("15m", 96), ("5m", 48))
+_TF_MS = {"1w": 7 * 86400 * 1000, "1d": 86400 * 1000, "4h": 4 * 3600 * 1000,
+          "1h": 3600 * 1000, "15m": 15 * 60 * 1000, "5m": 5 * 60 * 1000}
+_TF_LABEL = {"1w": "週線", "1d": "日線", "4h": "4小時線", "1h": "1小時線", "15m": "15分鐘線", "5m": "5分鐘線"}
 
 
 # ---------- 純函數(可測試,不碰網路) ----------
@@ -124,6 +130,10 @@ def build_market_context(symbol="BTC/USDT", as_of=None):
             raise ValueError("日線資料為空")
 
         funding_now, funding_avg7 = _fetch_funding(symbol, as_of_ms, live)
+        # 快照捕捉時間:實盤=抓取當下的真實 wall-clock;回測=as-of 參考基準點(該日 00:00 UTC)。
+        # 兩者用同一個 as_of_ms 換算,語意天然正確,不必分支處理。
+        snapshot_captured_at = datetime.datetime.fromtimestamp(
+            as_of_ms / 1000, tz=datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         if live:
             ticker = exchange.fetch_ticker(symbol)
@@ -133,7 +143,7 @@ def build_market_context(symbol="BTC/USDT", as_of=None):
             data = {"date": judgment_date, "asset": symbol,
                     "open": today[1], "high": today[2], "low": today[3],
                     "close": ticker["last"], "volume": today[5],
-                    "funding_rate": funding_now}
+                    "funding_rate": funding_now, "snapshot_captured_at": snapshot_captured_at}
         else:
             day = exchange.fetch_ohlcv(symbol, "1d", since=as_of_ms, limit=1)[0]
             day_date = datetime.datetime.fromtimestamp(
@@ -145,7 +155,7 @@ def build_market_context(symbol="BTC/USDT", as_of=None):
             data = {"date": judgment_date, "asset": symbol,
                     "open": day[1], "high": None, "low": None,
                     "close": day[1], "volume": None,
-                    "funding_rate": funding_now}
+                    "funding_rate": funding_now, "snapshot_captured_at": snapshot_captured_at}
 
         summary = compose_summary_v2(symbol, judgment_date, sections,
                                      funding_now, funding_avg7, snapshot)

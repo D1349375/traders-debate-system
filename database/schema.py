@@ -18,6 +18,9 @@ class MarketData(Base):
     funding_rate = Column(Float, nullable=True) # 資金費率
     open_interest = Column(Float, nullable=True) # 未平倉量
     context_summary = Column(Text, nullable=True) # 將餵給 LLM 的文字版行情摘要
+    # 快照捕捉時間(ISO UTC):實盤模式=實際抓取當下的 wall-clock 時間;
+    # 回測模式=as-of 日期的參考基準時點(該日 00:00 UTC,非程式實際執行時間)
+    snapshot_captured_at = Column(String, nullable=True)
 
 class PersonaDebate(Base):
     __tablename__ = 'persona_debates'
@@ -31,6 +34,7 @@ class PersonaDebate(Base):
     confidence = Column(Integer) # 0-100 信心指數
     reasoning = Column(Text, nullable=False) # 判斷理由/對話內容
     falsifier = Column(Text, nullable=True) # R2 必填:什麼證據出現會讓自己改判
+    intraday_scenario = Column(Text, nullable=True) # R1/R2 必填:今日收盤前的雙劇本 if-then(不得為多日/週目標)
     model_id = Column(String, nullable=True) # 跑此人格的底層模型(模型=預測者身分,必記)
     created_at = Column(String, nullable=True) # ISO timestamp,落地即寫、事後不改
 
@@ -54,6 +58,7 @@ class DailyBiasResult(Base):
     summary_reasoning = Column(Text) # 敘述性總結(不得推翻機械聚合方向)
     # 事後結果欄位(Phase4 §4):只存原始事實;命中與否由分析層依預登記的命中定義計算
     price_at_bias = Column(Float) # 判斷當下收盤價
+    snapshot_captured_at = Column(String, nullable=True) # 承接自 market_data,供執行時間紀律稽核(preregistration §8)
     price_after_1d = Column(Float, nullable=True)
     price_after_5d = Column(Float, nullable=True)
     price_after_20d = Column(Float, nullable=True)

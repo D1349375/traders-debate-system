@@ -22,8 +22,9 @@ from data.ingestion import build_market_context, fetch_close_on
 from database.db import get_session, upsert_market, record_opinion, finalize, fill_outcomes
 
 # v2-2026-07-19:摘要升級為多時間框架資訊集(週52/日90/4h42+費率+快照,見 市場摘要v2_資訊集設計.md)
+# v3-2026-07-20:新增 1H/15M/5M 日內時間框架 + intraday_scenario 必填欄位(見 preregistration.md §8)
 # 協議不變:兩輪固定,R1 盲判 → R2 結構化反駁;單人格只跑 R1
-PROTOCOL_VERSION = "v2-2026-07-19"
+PROTOCOL_VERSION = "v3-2026-07-20"
 
 
 def cmd_market(args):
@@ -49,6 +50,7 @@ def cmd_record(args):
             date=rec["date"], asset=rec["asset"], persona=rec["persona"],
             round_=int(rec["round"]), direction=rec["direction"],
             confidence=rec["confidence"], reasoning=rec["reasoning"],
+            intraday_scenario=rec.get("intraday_scenario"),
             falsifier=rec.get("falsifier"), model_id=rec.get("model_id"),
         )
         print(f"✅ 落地 {rec['date']} {rec['asset']} {rec['persona']} R{rec['round']}: "
