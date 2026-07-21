@@ -1,0 +1,358 @@
+<meta charset="utf-8">
+<title>交易員人格辯論日報 · 2026-07-21（Dry-Run）</title>
+<style>
+:root{
+  --paper:#F7F5F0; --surface:#FFFFFF; --ink:#211F1A; --ink-2:#5C584E; --ink-3:#8F8A7C;
+  --line:#E3DFD5; --line-soft:#ECE9E0;
+  --bull:#177E63; --bull-soft:#177E6318; --bear:#C43B55; --bear-soft:#C43B5514;
+  --neutral:#8A8578; --accent:#8A6D1F; --accent-soft:#8A6D1F14;
+  --ict:#4C5FBF; --tjr:#B0731C; --ebtc:#8A54B8;
+  --wickw:1.2;
+}
+@media (prefers-color-scheme: dark){:root{
+  --paper:#15171B; --surface:#1C1F24; --ink:#E9E7E0; --ink-2:#A8A499; --ink-3:#7A7669;
+  --line:#2C2F36; --line-soft:#24272D;
+  --bull:#2FA985; --bull-soft:#2FA98522; --bear:#E05C74; --bear-soft:#E05C741E;
+  --neutral:#8F8B7E; --accent:#CBA23C; --accent-soft:#CBA23C1C;
+  --ict:#8492E8; --tjr:#D69A45; --ebtc:#B586DD;
+}}
+:root[data-theme="dark"]{
+  --paper:#15171B; --surface:#1C1F24; --ink:#E9E7E0; --ink-2:#A8A499; --ink-3:#7A7669;
+  --line:#2C2F36; --line-soft:#24272D;
+  --bull:#2FA985; --bull-soft:#2FA98522; --bear:#E05C74; --bear-soft:#E05C741E;
+  --neutral:#8F8B7E; --accent:#CBA23C; --accent-soft:#CBA23C1C;
+  --ict:#8492E8; --tjr:#D69A45; --ebtc:#B586DD;
+}
+:root[data-theme="light"]{
+  --paper:#F7F5F0; --surface:#FFFFFF; --ink:#211F1A; --ink-2:#5C584E; --ink-3:#8F8A7C;
+  --line:#E3DFD5; --line-soft:#ECE9E0;
+  --bull:#177E63; --bull-soft:#177E6318; --bear:#C43B55; --bear-soft:#C43B5514;
+  --neutral:#8A8578; --accent:#8A6D1F; --accent-soft:#8A6D1F14;
+  --ict:#4C5FBF; --tjr:#B0731C; --ebtc:#8A54B8;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:16px/1.75 "PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px 80px}
+.serif{font-family:Georgia,"Times New Roman","PingFang TC","Microsoft JhengHei",serif}
+.mono{font-family:"Cascadia Code",Consolas,"SF Mono",monospace;font-variant-numeric:tabular-nums}
+
+/* ---- masthead ---- */
+header.mast{padding:52px 0 28px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.mast h1{font-size:clamp(30px,4.5vw,44px);line-height:1.2;margin:10px 0 6px;text-wrap:balance;font-weight:700}
+.mast .sub{color:var(--ink-2);font-size:15px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.badge{font-size:12.5px;padding:3px 12px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:var(--surface)}
+.badge.warn{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600}
+
+/* ---- section ---- */
+section.asset{margin-top:56px}
+.asset-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.asset-head h2{font-size:26px;margin:0;font-weight:700}
+.asset-head .px{color:var(--ink-2);font-size:14.5px}
+h3.block{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:36px 0 14px;font-weight:600}
+
+/* ---- verdict cards ---- */
+.verdicts{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch;margin-top:22px}
+@media(max-width:720px){.verdicts{grid-template-columns:1fr}.v-arrow{transform:rotate(90deg);justify-self:center}}
+.vcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;display:flex;flex-direction:column;gap:4px}
+.vcard .vlabel{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.vcard .vdir{font-size:30px;font-weight:700;line-height:1.15}
+.vdir.bull{color:var(--bull)} .vdir.bear{color:var(--bear)} .vdir.neut{color:var(--neutral)}
+.vcard .vmeta{font-size:13.5px;color:var(--ink-2)}
+.v-arrow{align-self:center;color:var(--ink-3);font-size:22px}
+.confbar{height:6px;border-radius:3px;background:var(--line-soft);overflow:hidden;margin-top:8px}
+.confbar i{display:block;height:100%;border-radius:3px}
+.confbar .b{background:var(--bull)} .confbar .r{background:var(--bear)}
+
+/* ---- chart ---- */
+.chartbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 14px 8px;margin-top:14px;position:relative}
+.chartbox .ct{font-size:14px;font-weight:600;padding:0 8px 6px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.chartbox .ct .hint{font-weight:400;color:var(--ink-3);font-size:12.5px}
+.chart-scroll{overflow-x:auto}
+svg.kchart{display:block;min-width:640px;width:100%;height:auto}
+.tooltip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);
+  border-radius:8px;padding:8px 12px;font-size:12.5px;line-height:1.6;box-shadow:0 4px 14px #0003;
+  opacity:0;transition:opacity .12s;z-index:5;white-space:nowrap}
+.tooltip b{font-weight:600}
+.lvl-legend{display:flex;gap:14px 18px;flex-wrap:wrap;padding:10px 8px 6px;font-size:12.5px;color:var(--ink-2)}
+.lvl-legend .it{display:inline-flex;align-items:center;gap:7px}
+.lvl-legend .sw{width:18px;height:0;border-top:2px dashed;display:inline-block}
+.lvl-legend .zw{width:18px;height:10px;border-radius:2px;display:inline-block}
+
+/* ---- aggregation math ---- */
+.aggmath{margin-top:14px;background:var(--accent-soft);border:1px solid var(--line);border-radius:10px;
+  padding:14px 18px;font-size:14px;color:var(--ink-2)}
+.aggmath .mono{color:var(--ink)}
+
+/* ---- persona cards ---- */
+.personas{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin-top:8px}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;
+  display:flex;flex-direction:column;gap:10px;border-top:3px solid var(--pc,var(--line))}
+.pcard.ict{--pc:var(--ict)} .pcard.tjr{--pc:var(--tjr)} .pcard.ebtc{--pc:var(--ebtc)}
+.pname{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16.5px}
+.pname .dot{width:9px;height:9px;border-radius:50%;background:var(--pc)}
+.pname .tag{font-size:11.5px;font-weight:500;color:var(--ink-3);letter-spacing:.04em}
+.rounds{display:flex;align-items:center;gap:10px;font-size:14px}
+.rpill{padding:2px 11px;border-radius:999px;font-weight:600;font-size:13.5px}
+.rpill.bull{background:var(--bull-soft);color:var(--bull)}
+.rpill.bear{background:var(--bear-soft);color:var(--bear)}
+.rarrow{color:var(--ink-3)}
+.rnote{font-size:12px;color:var(--ink-3)}
+.pcore{font-size:14px;color:var(--ink-2);line-height:1.75}
+.pcore b{color:var(--ink)}
+details.full{font-size:13.5px;border-top:1px dashed var(--line);padding-top:8px}
+details.full summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13px}
+details.full summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+details.full .rq{margin:10px 0 0;padding:10px 14px;border-left:3px solid var(--pc,var(--line));
+  background:var(--paper);border-radius:0 8px 8px 0;color:var(--ink-2);line-height:1.8}
+details.full .rq b{color:var(--ink)}
+.falsi{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--ink-2);line-height:1.7}
+.falsi .fl{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--bear);font-weight:700}
+
+/* ---- debate box ---- */
+.debate{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:720px){.debate{grid-template-columns:1fr}}
+.dbox{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px 20px;font-size:14px;color:var(--ink-2);line-height:1.8}
+.dbox h4{margin:0 0 8px;font-size:14px;color:var(--ink)}
+.dbox ul{margin:0;padding-left:20px}
+.dbox li{margin:4px 0}
+
+/* ---- notes ---- */
+.notes{margin-top:60px;border-top:2px solid var(--ink);padding-top:24px}
+.notes h2{font-size:20px;margin:0 0 14px}
+.notes p,.notes li{font-size:14px;color:var(--ink-2);line-height:1.85}
+.notes ol{padding-left:22px}
+footer.disc{margin-top:44px;padding:16px 20px;border:1px solid var(--accent);border-radius:10px;
+  background:var(--accent-soft);font-size:13.5px;color:var(--ink-2);line-height:1.8}
+footer.disc b{color:var(--accent)}
+@media (prefers-reduced-motion: reduce){.tooltip{transition:none}}
+</style>
+
+<div class="wrap">
+<header class="mast">
+  <div class="eyebrow">Trader Persona Debate System · Protocol v2-2026-07-19</div>
+  <h1 class="serif">人格辯論日報：單人格偏見（無辯論）</h1>
+  <div class="sub">判斷日 2026-07-21（UTC）· Binance 現貨日線 · 執行引擎 claude-opus-4-8</div>
+  <div class="badges">
+    <span class="badge warn">DRY RUN — 未寫入資料庫，不計入預登記樣本</span>
+    <span class="badge">人格陣容：ICT（單人格）</span>
+    <span class="badge">協議：單人格只跑 R1，不跑 R2</span>
+  </div>
+  <div class="aggmath" style="margin-top:14px">
+    <b>本次未進行辯論。</b>預登記生效人格僅 ICT 一位，依協議「單人格只跑 R1」，故無 R2 結構化反駁、無跨人格聚合、無分歧度統計——單人格基準即為當日輸出。
+    第二批蒸餾完成的三位新人格（Rekt Capital／Benjamin Cowen／MvdP）依 2026-07-20 裁示<b>暫不納入生效</b>，未參與本次。
+    　·　輸入已凍結：<span class="mono">data/market_context/2026-07-21_{BTCUSDT,ETHUSDT}.txt</span>
+  </div>
+</header>
+
+<!-- ================= BTC ================= -->
+<section class="asset" id="btc">
+  <div class="asset-head">
+    <h2 class="serif">BTC/USDT</h2>
+    <span class="px mono">快照 65,299.03 · 24H +0.954% · 資金費率 +0.0043%（7日均 +0.0054%）</span>
+  </div>
+
+  <div class="aggmath">
+    <b>單人格基準（ICT R1 盲判）＝ 🟢 Bullish 45 / 100</b>　·　辯論後聚合：<b>不適用</b>（單人格不跑 R2）　·　分歧度：<b>不適用</b>（n=1）
+  </div>
+
+  <h3 class="block">日線 K 線 · 近 60 日 · ICT 關鍵價位</h3>
+  <div class="chartbox" id="chart-btc">
+    <div class="ct"><span>BTC/USDT 日線（05-22 → 07-20 已收盤）</span><span class="hint">滑鼠移入可看 OHLC 與成交量</span></div>
+    <div class="chart-scroll"></div>
+    <div class="lvl-legend"></div>
+    <div class="tooltip"></div>
+  </div>
+
+  <h3 class="block">ICT 立場 · R1（單人格，無 R2）</h3>
+  <div class="personas">
+    <div class="pcard ict">
+      <div class="pname"><span class="dot"></span>ICT <span class="tag">演算法 · 流動性磁鐵 · PD Array</span></div>
+      <div class="rounds"><span class="rpill bull">R1 Bullish 45</span><span class="rnote">單人格，無 R2</span></div>
+      <div class="pcore">以週線 <b>120,247→57,800</b> 大區間錨定（EQ≈88,600），65,299 位於深度 discount，屬「找多不找空」的位置學。日線 6/25 的 58,115 與 7/1 的 57,800 形成 relative equal lows，掃除後未再回測＝任務完成；其後 higher lows 梯（58,115→61,306→61,824→63,100）與高點同步墊高。7/20 那根先探 <b>63,100</b> 吃掉短線多單 sell stops、收盤拉回 65,255，被讀為 Turtle Soup 形狀。</div>
+      <details class="full"><summary>展開 R1 完整論述</summary>
+        <div class="rq"><b>R1（Bullish 45）：</b>人格自陳其為 537 支逐字稿蒸餾之推斷、非本人審閱或授權。判斷起點是「離現在最近的止損池在哪」，而非指標訊號。HTF：週線自 2025-07 的 120,247 交割至 2026-06 的 57,800，被讀為一年份 sell-side liquidity 被清除的過程；以該段 range 計，65,299 在深度 discount、equilibrium 約 88,600。<b>自陳減分項：週線市場結構尚未真正翻轉，仍在做 lower highs——這是壓低信心的主因之一。</b>LTF：7/20 被特別點名——先跌至 63,100 吃掉 7/18、7/19 短線多單的 sell stops，收盤卻拉回 65,255 收在當日高位；其框架讀為「在舊低之外製造假突破後反轉」，並明確拒斥「支撐有效」這類解釋。<b>if-then：</b>守住 65,000 上方且不收破 63,100 → draw 先取 65,799 上方 buy stops，next 67,292；反之一根日線收盤跌破 63,100 → 結構作廢，下一目標 61,824 與 61,306，且明言不逆勢接刀。<b>信心僅 45 的四項自陳理由（人格主動列出的缺失維度，非系統評註）：</b>① crypto 24/7 使其 kill zone 時間表定義模糊，且摘要未提供時段資訊；② 無 COT 數據可定調月線舞台；③ 無相關資產對照，無法看 SMT divergence；④ 時序正走向 8 月，為其自陳會主動降低參與度的月份。資金費率近乎貼零，被解讀為上方 buy stops 尚未被預先消化、燃料仍滿。</div>
+      </details>
+      <div class="falsi"><span class="fl">Falsifier</span><br>日線收盤跌破 <b>63,100</b> → 該 bullish 結構作廢，轉看 61,824 / 61,306。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ETH ================= -->
+<section class="asset" id="eth">
+  <div class="asset-head">
+    <h2 class="serif">ETH/USDT</h2>
+    <span class="px mono">快照 1,910.14 · 24H +2.096% · 資金費率 +0.0012%（7日均 +0.0041%）</span>
+  </div>
+
+  <div class="aggmath">
+    <b>單人格基準（ICT R1 盲判）＝ 🟢 Bullish 55 / 100</b>　·　辯論後聚合：<b>不適用</b>（單人格不跑 R2）　·　分歧度：<b>不適用</b>（n=1）
+  </div>
+
+  <h3 class="block">日線 K 線 · 近 60 日 · ICT 關鍵價位</h3>
+  <div class="chartbox" id="chart-eth">
+    <div class="ct"><span>ETH/USDT 日線（05-22 → 07-20 已收盤）</span><span class="hint">滑鼠移入可看 OHLC 與成交量</span></div>
+    <div class="chart-scroll"></div>
+    <div class="lvl-legend"></div>
+    <div class="tooltip"></div>
+  </div>
+
+  <h3 class="block">ICT 立場 · R1（單人格，無 R2）</h3>
+  <div class="personas">
+    <div class="pcard ict">
+      <div class="pname"><span class="dot"></span>ICT <span class="tag">演算法 · 流動性磁鐵 · PD Array</span></div>
+      <div class="rounds"><span class="rpill bull">R1 Bullish 55</span><span class="rnote">單人格，無 R2</span></div>
+      <div class="pcore">核心論證是<b>磁鐵距離不對稱</b>：上方 buyside（<b>1,946.52</b>）距現價約 2%，下方已被取走的 sell stops（1,505／1,512）距現價約 25%。以 2026-01 高 3,284 至 6 月低 1,505 為 dealing range（EQ≈2,395），1,910 仍在 discount。7/17 日線探 1,803 把 7/13–7/15 的日線 FVG（約 1,846–1,864）吃掉後收回站上，被其讀為 inversion 驗證——並強調「wick 不算，收盤才算」。</div>
+      <details class="full"><summary>展開 R1 完整論述</summary>
+        <div class="rq"><b>R1（Bullish 55）：</b>往下：6/05 的 1,505.68 與 6/22 的 1,512.0 幾乎構成 relative equal lows，被讀為散戶 sell stops 堆積處；演算法將價格遞送下去取走後再未回頭——其框架稱之為 Turtle Soup，明確拒斥「超賣反彈」的解釋。往上：最近的 buyside liquidity 在 7/15 的 1,946.52，再上為 6/01 的 2,021.5／2,009 區。PD array：以 3,284→1,505 計，EQ 約 2,395，1,910 深在 discount，故 HTF 位置本身即「找多不找空」。週線連三根收高（1,785→1,806→1,872）。<b>自陳的內部衝突（減分項）：</b>短線 1,505–1,946 這個小 range 的 premium 側已站住，故此處並非理想的 discount 進場點——其自評為「本次判斷最大的內部衝突」，但以 higher time frame discipline 優先。<b>if-then：</b>日線守住 1,843.14 且不收破 1,806.8 → 視為演算法仍在執行往 1,946.52 取 buyside 的任務；反之收破 1,806.8、往 1,750.2 走 → sit on hands，不硬凹。<b>信心僅 55 的自陳理由：</b>四個維度只拿到兩個——無時段資訊、無 COT commercials 淨部位、無 BTC 對照的 SMT divergence。資金費率貼零被評為「背景乾淨，但那只是背景不是理由」。</div>
+      </details>
+      <div class="falsi"><span class="fl">Falsifier</span><br>日線收盤跌破 <b>1,806.8</b> → 多方論述失效，下一組 sell stops 在 1,750.2。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= NOTES ================= -->
+<section class="notes">
+  <h2 class="serif">方法論備註</h2>
+  <ul>
+    <li><b>本次未進行辯論，故不具備辯論系統的核心價值</b>（多視角交叉驗證與分歧量測）。兩個標的皆由同一人格、同一框架產出 Bullish，<b>方向一致不構成相互驗證</b>——那只是同一顆大腦看了兩張圖。</li>
+    <li><b>隨機性控制</b>：輸入已凍結（同判斷日先到先凍結，後續重跑須重用同一份）；R1 prompt 逐字使用 <span class="mono">templates/r1_prompt.txt</span>。LLM 抽樣隨機性不可消除——dry-run 重跑結果不同屬預期行為，不得挑好看的那次講故事。</li>
+    <li><b>本次為 dry-run，未寫入資料庫</b>，不計入預登記樣本（n 不變）。</li>
+    <li><b>信心數字未經校準</b>：45 / 55 是人格依其框架的自評，不是機率預測。校準分析屬 Phase 4 <span class="mono">bias_report_metrics.py</span> 範圍（尚未實作），本報告不做任何命中率或有效性宣稱。</li>
+    <li>ICT 人格於兩份輸出中皆自陳其為 537 支逐字稿蒸餾之推斷，非本人審閱或授權。</li>
+  </ul>
+  <p class="disc"><b>此為研究性統計工具的輸出，非投資建議。</b></p>
+</section>
+
+<footer class="disc"><b>免責聲明</b>　此為研究性統計工具的輸出，非投資建議。所有人格為基於公開影片逐字稿蒸餾的角色模擬，非本人親自審閱或授權；聚合結果為機械計算，不代表任何真實交易者的觀點。</footer>
+</div>
+
+<script>
+const DATA = {"BTC": [["05-22", 77615.52, 77900.0, 75359.18, 75539.5, 11272.36134], ["05-23", 75539.5, 77404.18, 74289.6, 76752.01, 15086.88814], ["05-24", 76752.0, 77543.15, 76108.0, 77064.96, 8398.00156], ["05-25", 77064.96, 77905.52, 76914.25, 77322.01, 7672.32197], ["05-26", 77322.01, 78080.0, 75677.97, 75930.01, 16953.47629], ["05-27", 75930.01, 76174.15, 74243.99, 74449.3, 16877.77483], ["05-28", 74449.31, 74590.77, 72582.82, 73617.51, 21274.02026], ["05-29", 73617.52, 74514.1, 72512.49, 73460.78, 18686.74141], ["05-30", 73460.78, 74143.76, 73216.0, 73884.38, 7515.40909], ["05-31", 73884.38, 74275.66, 73400.0, 73674.39, 6986.45707], ["06-01", 73674.39, 74092.0, 70686.68, 71408.9, 23921.09184], ["06-02", 71408.9, 71408.9, 66193.0, 66760.83, 32858.19586], ["06-03", 66760.84, 67516.0, 64092.49, 64142.75, 30138.3065], ["06-04", 64142.75, 64764.32, 61383.56, 63885.99, 43577.17571], ["06-05", 63885.99, 63978.0, 59130.91, 61056.47, 55027.28807], ["06-06", 61056.47, 61530.05, 59500.0, 60884.62, 19795.58877], ["06-07", 60884.62, 64234.68, 60746.0, 63332.01, 26612.10443], ["06-08", 63332.01, 64200.0, 62408.0, 63085.99, 23053.38624], ["06-09", 63086.0, 63526.01, 60780.0, 61730.0, 21636.21959], ["06-10", 61730.0, 62857.99, 60755.0, 61510.99, 15998.71652], ["06-11", 61510.99, 63933.02, 61510.99, 63625.99, 17380.94642], ["06-12", 63626.0, 64394.44, 62829.81, 63580.01, 16397.0524], ["06-13", 63580.0, 64762.77, 63418.66, 64458.01, 9960.74163], ["06-14", 64458.01, 65800.0, 63678.83, 65746.45, 13203.03375], ["06-15", 65746.45, 67292.15, 65354.0, 66328.74, 18559.80102], ["06-16", 66328.74, 66992.0, 65360.92, 65675.01, 14302.05801], ["06-17", 65675.02, 66445.93, 63915.77, 64509.4, 19048.65409], ["06-18", 64509.4, 64806.0, 62272.07, 62958.01, 16935.59661], ["06-19", 62958.01, 63666.0, 62316.44, 63543.91, 14247.424], ["06-20", 63543.9, 64388.0, 63184.21, 64298.01, 9522.10324], ["06-21", 64298.01, 64588.0, 63270.0, 63311.99, 8034.66333], ["06-22", 63312.0, 65622.83, 63312.0, 64020.01, 15423.10851], ["06-23", 64020.01, 64275.38, 61938.0, 62734.57, 20222.99292], ["06-24", 62734.57, 63239.06, 59102.7, 61077.99, 30678.28543], ["06-25", 61078.0, 61962.4, 58115.01, 59794.0, 30386.00694], ["06-26", 59794.64, 60759.99, 58337.0, 60097.27, 27403.55723], ["06-27", 60097.27, 60941.17, 59855.16, 60029.0, 9587.22916], ["06-28", 60029.01, 60545.01, 58905.0, 59577.01, 8907.13796], ["06-29", 59577.01, 60780.57, 58900.01, 60260.21, 20203.14178], ["06-30", 60260.2, 60276.54, 58201.0, 58624.71, 19639.82787], ["07-01", 58624.71, 61334.0, 57800.19, 60024.0, 25093.44662], ["07-02", 60024.0, 62200.0, 59588.0, 61560.0, 21382.14163], ["07-03", 61560.0, 62979.86, 61248.86, 62583.26, 14048.98627], ["07-04", 62583.26, 63461.99, 62328.24, 63144.01, 9139.8274], ["07-05", 63144.01, 63999.0, 62436.59, 63650.0, 9172.07758], ["07-06", 63650.01, 64700.0, 61306.84, 64042.02, 21435.28437], ["07-07", 64042.93, 64314.0, 62671.39, 63363.99, 16834.20823], ["07-08", 63364.0, 63761.99, 61544.56, 62290.0, 18620.09796], ["07-09", 62290.01, 63500.0, 61705.29, 63230.0, 16742.80672], ["07-10", 63230.01, 64692.83, 62926.01, 64161.72, 17589.00122], ["07-11", 64161.72, 64504.11, 63819.0, 63819.0, 9151.97432], ["07-12", 63819.01, 64290.11, 63640.83, 63780.0, 13914.83703], ["07-13", 63780.0, 64425.0, 61824.97, 62334.52, 21682.50204], ["07-14", 62334.52, 65100.0, 62272.2, 65043.98, 20552.41384], ["07-15", 65043.99, 65600.0, 64485.0, 64756.28, 18401.89741], ["07-16", 64756.28, 64997.52, 63748.74, 63830.2, 18764.52679], ["07-17", 63830.2, 64387.99, 62537.56, 63931.67, 18189.89389], ["07-18", 63931.67, 64865.0, 63886.65, 64834.22, 8031.18012], ["07-19", 64834.21, 64967.25, 64280.0, 64722.54, 8379.91474], ["07-20", 64722.55, 65799.0, 63100.0, 65255.51, 21323.48702]], "ETH": [["05-22", 2133.77, 2141.39, 2057.79, 2065.85, 221783.2548], ["05-23", 2065.86, 2149.95, 2009.3, 2117.68, 350546.2289], ["05-24", 2117.69, 2132.14, 2063.0, 2099.85, 197748.7605], ["05-25", 2099.86, 2141.98, 2092.26, 2113.01, 166428.5979], ["05-26", 2113.01, 2140.49, 2055.06, 2073.77, 282553.3096], ["05-27", 2073.77, 2097.4, 2016.0, 2024.84, 267963.1573], ["05-28", 2024.83, 2030.0, 1967.0, 2009.9, 363834.9211], ["05-29", 2009.89, 2046.59, 1976.48, 2014.54, 283145.695], ["05-30", 2014.54, 2032.0, 2002.0, 2022.44, 97977.5349], ["05-31", 2022.44, 2038.0, 1993.75, 2007.01, 163735.4958], ["06-01", 2007.02, 2021.5, 1956.04, 2006.73, 374428.2839], ["06-02", 2006.73, 2006.78, 1839.02, 1859.84, 556885.5418], ["06-03", 1859.84, 1893.07, 1769.62, 1813.05, 584760.4818], ["06-04", 1813.05, 1820.5, 1717.28, 1770.77, 648306.1051], ["06-05", 1770.76, 1774.99, 1540.19, 1583.4, 1257013.1608], ["06-06", 1583.4, 1601.22, 1505.68, 1569.69, 558458.3672], ["06-07", 1569.68, 1721.93, 1564.1, 1690.51, 458280.5909], ["06-08", 1690.5, 1714.5, 1645.0, 1690.49, 480027.3121], ["06-09", 1690.48, 1696.88, 1614.02, 1639.52, 384147.2349], ["06-10", 1639.52, 1667.96, 1603.44, 1621.59, 290791.2819], ["06-11", 1621.6, 1693.59, 1621.6, 1673.46, 278507.7204], ["06-12", 1673.46, 1691.07, 1652.09, 1666.41, 201888.0102], ["06-13", 1666.42, 1697.28, 1662.2, 1681.18, 106751.6077], ["06-14", 1681.19, 1732.28, 1654.9, 1725.62, 178009.9541], ["06-15", 1725.63, 1849.54, 1709.66, 1796.13, 464135.2553], ["06-16", 1796.14, 1839.77, 1758.0, 1792.99, 353577.549], ["06-17", 1793.0, 1810.21, 1725.34, 1750.6, 334498.0575], ["06-18", 1750.61, 1762.99, 1671.79, 1711.11, 312480.9656], ["06-19", 1711.11, 1719.51, 1679.11, 1711.19, 165078.1984], ["06-20", 1711.18, 1749.55, 1704.06, 1741.08, 159791.8211], ["06-21", 1741.08, 1741.45, 1702.0, 1706.94, 123762.4689], ["06-22", 1706.94, 1779.9, 1706.94, 1728.19, 262657.182], ["06-23", 1728.19, 1736.25, 1635.65, 1667.13, 248262.012], ["06-24", 1667.13, 1693.67, 1552.95, 1622.17, 355728.3403], ["06-25", 1622.18, 1660.54, 1532.9, 1567.84, 440671.005], ["06-26", 1567.86, 1594.7, 1512.0, 1578.68, 423691.4393], ["06-27", 1578.68, 1611.02, 1562.86, 1573.99, 131592.3598], ["06-28", 1574.0, 1588.82, 1548.37, 1571.96, 140181.1417], ["06-29", 1571.96, 1637.58, 1550.43, 1613.07, 309968.9748], ["06-30", 1613.07, 1614.41, 1550.2, 1572.01, 222057.2042], ["07-01", 1572.0, 1646.26, 1552.92, 1609.58, 306536.311], ["07-02", 1609.59, 1725.0, 1597.22, 1700.57, 373453.5082], ["07-03", 1700.57, 1775.78, 1694.72, 1758.21, 244416.868], ["07-04", 1758.22, 1807.65, 1744.09, 1780.64, 190880.1497], ["07-05", 1780.64, 1808.0, 1748.79, 1785.65, 389673.4191], ["07-06", 1785.65, 1833.4, 1728.95, 1799.56, 305879.3304], ["07-07", 1799.56, 1813.16, 1757.57, 1771.45, 241536.7253], ["07-08", 1771.45, 1785.0, 1713.44, 1743.54, 225231.2254], ["07-09", 1743.55, 1762.36, 1721.93, 1745.16, 173705.2572], ["07-10", 1745.17, 1812.0, 1737.68, 1796.85, 215605.8045], ["07-11", 1796.85, 1830.0, 1786.58, 1787.76, 178703.4183], ["07-12", 1787.76, 1826.92, 1779.46, 1806.8, 141072.9835], ["07-13", 1806.8, 1846.0, 1750.2, 1776.72, 295031.6198], ["07-14", 1776.71, 1896.14, 1773.41, 1891.87, 368913.772], ["07-15", 1891.87, 1946.52, 1864.38, 1917.86, 319800.9693], ["07-16", 1917.86, 1929.48, 1857.54, 1864.71, 271689.0863], ["07-17", 1864.71, 1871.08, 1803.05, 1841.93, 253027.7556], ["07-18", 1841.94, 1867.58, 1837.58, 1862.61, 92597.9232], ["07-19", 1862.61, 1879.38, 1851.71, 1872.23, 143922.6662], ["07-20", 1872.24, 1918.16, 1843.14, 1904.77, 271195.633]]};
+
+// ---- level & annotation config ----
+const CONF = {"btc": {"key": "BTC", "box": "#chart-btc", "dec": 0, "levels": [{"type": "line", "at": 67292, "color": "var(--bull)", "label": "67,292 次級目標（6/15 日線高點）"}, {"type": "line", "at": 65799, "color": "var(--accent)", "label": "65,799 首要 draw：上方 buy stops（7/20 盤中已觸及）"}, {"type": "line", "at": 63100, "color": "var(--bear)", "label": "63,100 多方失效點（日線收盤破 → 結構作廢）"}, {"type": "zone", "from": 61306, "to": 61824, "color": "var(--ict)", "label": "61,306–61,824 失效後下一目標（relative equal lows）"}, {"type": "zone", "from": 57800, "to": 58115, "color": "var(--ict)", "label": "57,800–58,115 equal lows（7/1 已掃，任務完成）"}], "events": [{"date": "07-01", "side": "below", "color": "var(--bull)", "label": "掃 57,800 sell side"}, {"date": "07-20", "side": "below", "color": "var(--bull)", "label": "探 63,100 後收 65,255"}]}, "eth": {"key": "ETH", "box": "#chart-eth", "dec": 0, "levels": [{"type": "zone", "from": 2009, "to": 2021, "color": "var(--bear)", "label": "2,009–2,021 次級目標（6/01 區域）"}, {"type": "line", "at": 1946.52, "color": "var(--accent)", "label": "1,946.52 首要 draw：buyside liquidity（距現價約 2%）"}, {"type": "zone", "from": 1846, "to": 1864, "color": "var(--bull)", "label": "1,846–1,864 日線 FVG（7/17 已吃回並收上）"}, {"type": "line", "at": 1806.8, "color": "var(--bear)", "label": "1,806.8 多方失效點（日線收盤破 → sit on hands）"}, {"type": "line", "at": 1512, "color": "var(--ict)", "label": "1,505 / 1,512 equal lows（6 月已取走，距現價約 25%）"}], "events": [{"date": "06-05", "side": "below", "color": "var(--ict)", "label": "掃 1,505"}, {"date": "06-26", "side": "below", "color": "var(--ict)", "label": "二測 1,512"}, {"date": "07-17", "side": "below", "color": "var(--bull)", "label": "探 1,803 吃回 FVG"}]}};
+
+const NS = "http://www.w3.org/2000/svg";
+function el(t, at){ const e = document.createElementNS(NS, t); for(const k in at) e.setAttribute(k, at[k]); return e; }
+function fmt(n, dec){ return n.toLocaleString("en-US", {maximumFractionDigits: dec}); }
+
+function draw(cfg){
+  const rows = DATA[cfg.key];
+  const box = document.querySelector(cfg.box);
+  const holder = box.querySelector(".chart-scroll");
+  const tooltip = box.querySelector(".tooltip");
+  const legend = box.querySelector(".lvl-legend");
+  holder.innerHTML = "";
+
+  const W = 960, PH = 320, VH = 64, GAP = 14, ML = 10, MR = 74, MT = 26, MB = 22;
+  const H = MT + PH + GAP + VH + MB;
+  const iw = W - ML - MR, n = rows.length, step = iw / n, cw = Math.max(3, step * 0.62);
+
+  let lo = Infinity, hi = -Infinity, vmax = 0;
+  for(const r of rows){ lo = Math.min(lo, r[3]); hi = Math.max(hi, r[2]); vmax = Math.max(vmax, r[5]); }
+  for(const lv of cfg.levels){ const a = lv.type==="zone"?lv.from:lv.at, b = lv.type==="zone"?lv.to:lv.at;
+    lo = Math.min(lo, a*0.999); hi = Math.max(hi, b*1.001); }
+  const pad = (hi-lo)*0.04; lo -= pad; hi += pad;
+  const y = p => MT + PH - (p-lo)/(hi-lo)*PH;
+  const x = i => ML + i*step + step/2;
+  const vy = v => MT + PH + GAP + VH - (v/vmax)*VH;
+
+  const svg = el("svg", {class:"kchart", viewBox:`0 0 ${W} ${H}`, role:"img",
+    "aria-label": cfg.key + " 日線K線圖，含各人格關鍵價位標註"});
+
+  // grid + right axis (recessive)
+  const ticks = 5;
+  for(let t=0;t<=ticks;t++){
+    const p = lo + (hi-lo)*t/ticks, yy = y(p);
+    svg.appendChild(el("line",{x1:ML,x2:W-MR,y1:yy,y2:yy,stroke:"var(--line-soft)","stroke-width":1}));
+    const tx = el("text",{x:W-MR+8,y:yy+4,"font-size":11,fill:"var(--ink-3)",class:"mono"});
+    tx.textContent = fmt(Math.round(p), 0); svg.appendChild(tx);
+  }
+  // x labels every ~10 candles
+  for(let i=0;i<n;i+=10){
+    const tx = el("text",{x:x(i),y:H-6,"font-size":10.5,fill:"var(--ink-3)","text-anchor":"middle",class:"mono"});
+    tx.textContent = rows[i][0]; svg.appendChild(tx);
+  }
+
+  // level zones (under candles)
+  for(const lv of cfg.levels){ if(lv.type!=="zone") continue;
+    svg.appendChild(el("rect",{x:ML,y:y(lv.to),width:iw,height:Math.max(2,y(lv.from)-y(lv.to)),
+      fill:lv.color,opacity:0.10}));
+  }
+
+  // volume bars
+  for(let i=0;i<n;i++){ const r = rows[i];
+    svg.appendChild(el("rect",{x:x(i)-cw/2,y:vy(r[5]),width:cw,height:MT+PH+GAP+VH-vy(r[5]),
+      fill:r[4]>=r[1]?"var(--bull)":"var(--bear)",opacity:0.35,rx:1}));
+  }
+  const vlab = el("text",{x:ML,y:MT+PH+GAP+10,"font-size":10.5,fill:"var(--ink-3)"});
+  vlab.textContent = "Volume"; svg.appendChild(vlab);
+
+  // candles
+  for(let i=0;i<n;i++){ const r = rows[i], up = r[4]>=r[1], c = up?"var(--bull)":"var(--bear)";
+    svg.appendChild(el("line",{x1:x(i),x2:x(i),y1:y(r[2]),y2:y(r[3]),stroke:c,"stroke-width":1.2}));
+    const top = y(Math.max(r[1],r[4])), bh = Math.max(1.5, Math.abs(y(r[1])-y(r[4])));
+    svg.appendChild(el("rect",{x:x(i)-cw/2,y:top,width:cw,height:bh,fill:c,rx:1}));
+  }
+
+  // level lines (over candles)
+  for(const lv of cfg.levels){ if(lv.type!=="line") continue;
+    svg.appendChild(el("line",{x1:ML,x2:W-MR,y1:y(lv.at),y2:y(lv.at),stroke:lv.color,
+      "stroke-width":1.6,"stroke-dasharray":"6 4",opacity:0.85}));
+  }
+
+  // event markers
+  for(const ev of cfg.events){
+    const i = rows.findIndex(r=>r[0]===ev.date); if(i<0) continue;
+    const r = rows[i], above = ev.side==="above";
+    const yy = above ? y(r[2])-8 : y(r[3])+8;
+    const pts = above ? `${x(i)-5},${yy-8} ${x(i)+5},${yy-8} ${x(i)},${yy}`
+                      : `${x(i)-5},${yy+8} ${x(i)+5},${yy+8} ${x(i)},${yy}`;
+    svg.appendChild(el("polygon",{points:pts,fill:ev.color}));
+    const tx = el("text",{x:x(i),y:above?yy-13:yy+21,"font-size":10.5,fill:"var(--ink-2)","text-anchor":"middle","font-weight":600});
+    tx.textContent = ev.label; svg.appendChild(tx);
+  }
+
+  // hover layer
+  const cross = el("line",{x1:0,x2:0,y1:MT,y2:MT+PH,stroke:"var(--ink-3)","stroke-width":1,"stroke-dasharray":"3 3",opacity:0});
+  svg.appendChild(cross);
+  const hot = el("rect",{x:ML,y:MT,width:iw,height:PH+GAP+VH,fill:"transparent"});
+  svg.appendChild(hot);
+
+  hot.addEventListener("mousemove", e=>{
+    const rect = svg.getBoundingClientRect();
+    const sx = (e.clientX-rect.left) * (W/rect.width);
+    let i = Math.round((sx-ML)/step-0.5); i = Math.max(0, Math.min(n-1, i));
+    const r = rows[i];
+    cross.setAttribute("x1",x(i)); cross.setAttribute("x2",x(i)); cross.setAttribute("opacity",0.6);
+    const chg = ((r[4]/r[1]-1)*100).toFixed(2);
+    tooltip.innerHTML = `<b>${r[0]}</b>　<span style="color:${r[4]>=r[1]?'var(--bull)':'var(--bear)'}">${chg>0?'+':''}${chg}%</span><br>`+
+      `O ${fmt(r[1],cfg.dec)}　H ${fmt(r[2],cfg.dec)}<br>L ${fmt(r[3],cfg.dec)}　C ${fmt(r[4],cfg.dec)}<br>Vol ${fmt(Math.round(r[5]),0)}`;
+    tooltip.style.opacity = 1;
+    const bx = box.getBoundingClientRect();
+    let tl = e.clientX-bx.left+16, tt = e.clientY-bx.top-10;
+    if(tl + 190 > bx.width) tl -= 210;
+    tooltip.style.left = tl+"px"; tooltip.style.top = tt+"px";
+  });
+  hot.addEventListener("mouseleave", ()=>{ tooltip.style.opacity = 0; cross.setAttribute("opacity",0); });
+
+  holder.appendChild(svg);
+
+  // legend
+  legend.innerHTML = "";
+  for(const lv of cfg.levels){
+    const it = document.createElement("span"); it.className = "it";
+    const sw = document.createElement("span");
+    if(lv.type==="zone"){ sw.className = "zw"; sw.style.background = "color-mix(in srgb,"+lv.color+" 18%, transparent)"; sw.style.border = "1px solid "+lv.color; }
+    else { sw.className = "sw"; sw.style.borderTopColor = lv.color; }
+    it.appendChild(sw);
+    it.appendChild(document.createTextNode(lv.label));
+    legend.appendChild(it);
+  }
+}
+draw(CONF.btc); draw(CONF.eth);
+</script>
