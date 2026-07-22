@@ -83,7 +83,7 @@ def upsert_market(session, data, summary, variant="core"):
 
 
 def record_opinion(session, *, date, asset, persona, round_, direction, confidence,
-                   reasoning, intraday_scenario, falsifier=None, model_id=None):
+                   reasoning, intraday_scenario, trade_plan, falsifier=None, model_id=None):
     if direction not in VALID_DIRECTIONS:
         raise ValueError(f"非法方向: {direction}")
     confidence = int(confidence)
@@ -93,13 +93,15 @@ def record_opinion(session, *, date, asset, persona, round_, direction, confiden
         raise ValueError("round 只能是 1 或 2(協議固定兩輪)")
     if not intraday_scenario or not intraday_scenario.strip():
         raise ValueError("intraday_scenario 為必填(R1/R2 皆須提供今日收盤前的雙劇本 if-then)")
+    if not trade_plan or not trade_plan.strip():
+        raise ValueError("trade_plan 為必填(R1/R2 皆須提供若本人真的要下單的具體計畫,或明講不下單及原因)")
     exists = session.query(PersonaDebate).filter_by(
         date=date, asset=asset, persona_name=persona, round=round_).one_or_none()
     if exists is not None:
         raise ValueError(f"{date} {asset} {persona} R{round_} 已落地,不可覆寫")
     row = PersonaDebate(date=date, asset=asset, persona_name=persona, round=round_,
                         direction=direction, confidence=confidence, reasoning=reasoning,
-                        intraday_scenario=intraday_scenario,
+                        intraday_scenario=intraday_scenario, trade_plan=trade_plan,
                         falsifier=falsifier, model_id=model_id, created_at=_now_iso())
     session.add(row)
     session.commit()

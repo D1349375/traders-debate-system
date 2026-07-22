@@ -37,6 +37,7 @@ class PersonaDebate(Base):
     reasoning = Column(Text, nullable=False) # 判斷理由/對話內容
     falsifier = Column(Text, nullable=True) # R2 必填:什麼證據出現會讓自己改判
     intraday_scenario = Column(Text, nullable=True) # R1/R2 必填:今日收盤前的雙劇本 if-then(不得為多日/週目標)
+    trade_plan = Column(Text, nullable=True) # R1/R2 必填(v6起):若本人真的要下單的具體計畫(進場/停損/目標/部位),或明講不下單及原因
     model_id = Column(String, nullable=True) # 跑此人格的底層模型(模型=預測者身分,必記)
     created_at = Column(String, nullable=True) # ISO timestamp,落地即寫、事後不改
 

@@ -12,11 +12,12 @@ def session(tmp_path):
     return get_session(f"sqlite:///{tmp_path / 'test.db'}")
 
 
-def rec(session, persona, round_, direction, conf, date="2026-01-01", intraday_scenario="test scenario"):
+def rec(session, persona, round_, direction, conf, date="2026-01-01", intraday_scenario="test scenario",
+        trade_plan="test trade plan"):
     return record_opinion(session, date=date, asset="BTC/USDT", persona=persona,
                           round_=round_, direction=direction, confidence=conf,
                           reasoning="test", intraday_scenario=intraday_scenario,
-                          model_id="test-model")
+                          trade_plan=trade_plan, model_id="test-model")
 
 
 class TestRecord:
@@ -30,6 +31,12 @@ class TestRecord:
             rec(session, "ict", 1, "Bullish", 70, intraday_scenario=None)
         with pytest.raises(ValueError, match="intraday_scenario 為必填"):
             rec(session, "ict", 1, "Bullish", 70, intraday_scenario="   ")
+
+    def test_trade_plan_required(self, session):
+        with pytest.raises(ValueError, match="trade_plan 為必填"):
+            rec(session, "ict", 1, "Bullish", 70, trade_plan=None)
+        with pytest.raises(ValueError, match="trade_plan 為必填"):
+            rec(session, "ict", 1, "Bullish", 70, trade_plan="   ")
 
     def test_invalid_round_raises(self, session):
         with pytest.raises(ValueError):

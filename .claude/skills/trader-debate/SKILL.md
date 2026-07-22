@@ -61,7 +61,7 @@ venv\Scripts\python.exe main.py market --asset ETH/USDT --variant emperorbtc > d
 - **prompt 必須逐字使用 `templates/r1_prompt.txt`,只填充 `{佔位符}`,不得增刪或改寫任何語句**(prompt 措辭差異會系統性平移輸出分佈,見「隨機性控制」)。人格 SKILL.md 路徑:ICT=`.claude/skills/ict-perspective/SKILL.md`,其餘同模式。
 - **`{MARKET_CONTEXT_PATH}` 依人格分流填值,不是固定同一份**:ICT 填 `..._core.txt`;TJR 填 `..._tjr.txt`;EmperorBTC 填 `..._emperorbtc.txt`。填錯等於資訊分流失效,務必對照 Step 1 的檔名。
 - **隔離鐵律:R1 的 prompt 中不得包含任何其他人格的輸出或存在資訊;也不得混入其他標的的摘要,也不得把某人格的變體內容用給另一人格**(逐標的、逐分流獨立判斷,歸因才乾淨)。`tjr` 變體內建的相關資產參考行情屬於 TJR 專屬設計,不算違反此鐵律。
-- 輸出格式已寫死在模板內,含**必答項 `intraday_scenario`**(今日收盤前雙劇本 if-then,範圍限定判斷日當天,不得是多日/週目標;詳細規格見模板檔本身,不在此重複)。
+- 輸出格式已寫死在模板內,含**必答項 `intraday_scenario`**(今日收盤前雙劇本 if-then,範圍限定判斷日當天,不得是多日/週目標)與**必答項 `trade_plan`**(v6起:若本人真的要下這筆單的具體計畫——進場觸發/停損/目標/部位大小,套用其框架既有風控規則,或明講現在不下單及原因;詳細規格見模板檔本身,不在此重複)。
 
 收齊後寫入暫存 JSON 檔(scratchpad),每筆補上 `date`/`asset`/`persona`/`round`(=1)/`model_id`(subagent 實際使用的模型 ID),然後:
 ```
@@ -73,7 +73,7 @@ venv\Scripts\python.exe main.py record --json <r1檔案路徑>
 
 - **prompt 必須逐字使用 `templates/r2_prompt.txt`,只填充 `{佔位符}`**。R1 各家輸出先整理成單一 JSON 檔(scratchpad,含 direction/confidence/reasoning/intraday_scenario 四欄,不含過程全文),路徑填入 `{R1_JSON_PATH}`。
 - `{MARKET_CONTEXT_PATH}` 分流規則與 Step 2 相同:ICT 填 `..._core.txt`,TJR 填 `..._tjr.txt`,EmperorBTC 填 `..._emperorbtc.txt`,不得填錯或混用。
-- 協議必答項 (a)(b)(c)(d) 與輸出格式(JSON 加 `falsifier`、`intraday_scenario` 兩欄)已寫死在模板內。(d) = 更新後的 `intraday_scenario`,範圍限制同 Step 2,可沿用 R1 版本但須重新確認仍成立,不可留空。
+- 協議必答項 (a)(b)(c)(d)(e) 與輸出格式(JSON 加 `falsifier`、`intraday_scenario`、`trade_plan` 三欄)已寫死在模板內。(d) = 更新後的 `intraday_scenario`,範圍限制同 Step 2,可沿用 R1 版本但須重新確認仍成立,不可留空。(e) = 更新後的 `trade_plan`(v6起),同樣可沿用 R1 版本但須重新確認仍成立、不可留空。
 
 record 落地(round=2)。
 

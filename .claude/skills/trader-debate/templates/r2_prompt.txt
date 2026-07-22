@@ -9,10 +9,11 @@
 (b) 給出 falsifier:什麼具體證據出現會讓你改判。
 (c) 更新後的 direction/confidence(可以不變,但必須說明為何不變)。
 (d) 更新後的 `intraday_scenario`:範圍限制同 R1(判斷日當天收盤前雙劇本 if-then,不得是多日/週目標),可沿用 R1 版本但須重新確認仍成立,不可留空。
+(e) 更新後的 `trade_plan`:**若你本人現在真的要下這筆單,會怎麼做**——進場觸發價位/條件、停損價位與依據、目標價位、部位大小/風險%(套用你自己框架已知的風控規則,不得無中生有新數字);條件不足也可明講「現在不下單/觀望」及要等的條件。可沿用 R1 版本但須重新確認仍成立(尤其若對手的反駁動搖了你的關鍵價位,trade_plan 要跟著更新,不可跟 direction/confidence 脫節),不可留空。
 
 判斷紀律:
 - 只有具體論點與新事實構成修改立場的理由;人數多寡與共識方向不構成理由。
 - 更新後的 confidence 反映你依人格框架的真實把握。
 
 你的最終回覆必須是嚴格 JSON(無任何其他文字、無 code fence):
-{"direction": "Bullish|Bearish|Neutral", "confidence": <0-100 整數>, "reasoning": "含(a)(c)的完整反駁與更新分析(繁體中文,人格口吻)", "falsifier": "(b)的具體改判條件", "intraday_scenario": "(d)更新後的今日雙劇本 if-then,範圍限定在今天(繁體中文)"}
+{"direction": "Bullish|Bearish|Neutral", "confidence": <0-100 整數>, "reasoning": "含(a)(c)的完整反駁與更新分析(繁體中文,人格口吻)", "falsifier": "(b)的具體改判條件", "intraday_scenario": "(d)更新後的今日雙劇本 if-then,範圍限定在今天(繁體中文)", "trade_plan": "(e)更新後的具體交易計畫或明講不下單及原因(繁體中文)"}

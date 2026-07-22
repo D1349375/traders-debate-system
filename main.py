@@ -29,8 +29,11 @@ from database.db import get_session, upsert_market, record_opinion, finalize, fi
 #   真正的資訊分流而非「看得到但不准用」(見 preregistration.md §8)
 # v5-2026-07-22:新增總經行事曆旗標(三變體皆含,NFP/FOMC/8月規則計算);新增 tjr 變體(core+相關資產
 #   BTC/ETH參考行情);ICT SKILL.md 信心分級表修正COT/SMT永久缺席造成的天花板效應(見 preregistration.md §8)
+# v6-2026-07-23:persona_debates 新增 trade_plan 必填欄位(R1/R2 皆須提供)——若本人真的要下單的
+#   具體計畫(進場觸發/停損/目標/部位大小,套用其框架既有風控規則),或明講現在不下單及原因
+#   (見 preregistration.md §8)
 # 協議不變:兩輪固定,R1 盲判 → R2 結構化反駁;單人格只跑 R1
-PROTOCOL_VERSION = "v5-2026-07-22"
+PROTOCOL_VERSION = "v6-2026-07-23"
 
 
 def cmd_market(args):
@@ -57,6 +60,7 @@ def cmd_record(args):
             round_=int(rec["round"]), direction=rec["direction"],
             confidence=rec["confidence"], reasoning=rec["reasoning"],
             intraday_scenario=rec.get("intraday_scenario"),
+            trade_plan=rec.get("trade_plan"),
             falsifier=rec.get("falsifier"), model_id=rec.get("model_id"),
         )
         print(f"✅ 落地 {rec['date']} {rec['asset']} {rec['persona']} R{rec['round']}: "

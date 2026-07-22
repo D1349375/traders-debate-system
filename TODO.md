@@ -37,6 +37,8 @@
   - `database/schema.py` 新增 `context_summary_tjr`;`main.py --variant` 新增 `tjr` 選項;`protocol_version` 升 `v5-2026-07-22`;trader-debate SKILL.md Step1改凍結三份檔案、Step2/3三方路由
   - 63 pytest 全過(9個新增:總經行事曆旗標邊界案例、tjr變體輸出、DB三欄寫入);真實行情smoke test驗證三變體皆正確(tjr變體35.4KB,含ETH日/4H/1H/15M參考資料且不含成交量)
   - preregistration §8 已記錄完整脈絡
+- [x] **摘要 v6:R1/R2 新增必填欄位 `trade_plan`(2026-07-23)**:使用者回顧近日報告後指出三人格輸出從未具體講「若本人真的要下這筆單會怎麼做」(進場觸發/停損/目標/部位大小),只有盤面解讀與今日劇本;三人格 SKILL.md 早已蒸餾出具體風控規則(ICT/TJR 1-3%、EmperorBTC 0.25-1%),缺的只是 prompt 沒要求套用。新增 `trade_plan` 必填欄位(R1/R2 皆須提供,允許「現在不下單」為合法答案,避免製造假交易訊號);`database/schema.py`/`db.py`/`main.py`/prompt 模板/orchestrator SKILL.md/報告版型同步更新,`protocol_version` 升 `v6-2026-07-23`;65 pytest 全過(1個新增);preregistration §8、市場摘要協議版本演進紀錄.md 已記錄。實際輸出品質待下次真實跑 bias 驗證。
+- [ ] **2026年底前手動更新 `_FOMC_MEETINGS_2026`(2026-07-23 確認)**:`data/ingestion.py` 的 FOMC 判斷目前寫死 2026 年會議日期表,無跨年自動提醒機制——過了 2026 年,FOMC 那段迴圈不會報錯也不會標記任何一週,`coverage_note` 仍會印同一句「僅2026年,需逐年更新」靜態文字,不會變得更醒目。需在 2026 年底前手動查證 2027 FOMC 會議日期(來源:federalreserve.gov/monetarypolicy/fomccalendars.htm)並更新該表,否則 2027 年起 FOMC 決策週旗標會靜默完全失效(NFP 規則計算不受影響)
 
 ## 進行中討論
 - [ ] **回測支線（探索性,2026-02~07-14 半乾淨區）待與使用者討論後啟動**,懸而未決:(a) 語料稽核判定標準多嚴——提到 BTC/ETH 就剔除該日,還是要具體到價位/方向才剔除;(b) pilot 30 天怎麼選——隨機抽 vs 連續段;(c) 探索性預登記是否也走使用者簽署流程。背景見 `回測污染分析_雙層記憶.md`。**有賞味期限:模型升級到更新知識截止日即失效,要做要趁早**
@@ -46,7 +48,7 @@
 - [x] **TJR 已完成真正蒸餾（2026-07-19）**：765 支逐字稿走完女媧全流程，產出 `.claude/skills/tjr-perspective/SKILL.md`，3 子 agent 驗證通過
 - [x] **EmperorBTC 已完成真正蒸餾（2026-07-19）**：以 `data/fetch_transcripts.py` 自抓 81 支逐字稿，走完女媧流程，產出 `.claude/skills/emperorbtc-perspective/SKILL.md`，3 子 agent 驗證通過（crypto 原生＋反 ICT 操縱敘事，辯論框架分歧）
 - [x] **GCR 確認無法用 YT 流程蒸餾**：Twitter/X 匿名者、已消失、YouTube 無本人頻道（需其 X 文字存檔才能走純本地語料模式）。Mark Douglas 語料薄（無官方頻道）待確認來源
-- [ ] **決定哪些人格納入生效**（ICT / TJR / EmperorBTC）→ 若多人格,需先在 `preregistration.md` §8 增補登記(人格清單+各自語料截止日),之後 R2 結構化反駁自動啟用。注意:TJR/EmperorBTC 的模型記憶/語料條件與 ICT 不同,對回測支線的影響見報告補記
+- [x] **決定哪些人格納入生效**（ICT / TJR / EmperorBTC）→ 三人格已於 2026-07-20 正式生效(見上「已完成」區第21行),`preregistration.md` §8 已增補登記,R2 結構化反駁已啟用
 - [ ] Ensemble lift（個別vs綜合命中率比較）與分歧情境表現分析——多人格生效後即可做
 
 ## 未來方向（待評估，尚未決定）
