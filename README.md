@@ -193,6 +193,7 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 | [preregistration.md](preregistration.md) | 命中定義預登記（**已生效 2026-07-19**，鎖死不可改） |
 | [回測污染分析_雙層記憶.md](回測污染分析_雙層記憶.md) | 為何不能回測過去：語料記憶可稽核／權重記憶只能繞開，可用窗口與探索性回測前置條件 |
 | [市場摘要v2_資訊集設計.md](市場摘要v2_資訊集設計.md) | 資訊集設計：歷史是輸入不是洩漏、中性資訊集原則、v2 規格與版本治理 |
+| [市場摘要協議版本演進紀錄.md](市場摘要協議版本演進紀錄.md) | **v1→現行完整版本史單一入口**：每版改了什麼、為什麼改、拒絕了哪些替代方案；任何 `PROTOCOL_VERSION` 升版都要同步補一節 |
 | [youtube_scraper_guide.md](youtube_scraper_guide.md) | 語料抓取流程 |
 | [main.py](main.py) | 落地 CLI：`market`／`record`／`finalize`／`outcomes` |
 | [database/schema.py](database/schema.py) | SQLite schema（四張表，含事後價格欄位） |
@@ -204,6 +205,6 @@ ICT 語料涵蓋至 2026 年中，且逐字稿含他對過去實際行情的評�
 | `.claude/skills/ict-perspective/SKILL.md` | ICT 人格 Skill（537 逐字稿蒸餾） |
 | `.claude/skills/tjr-perspective/SKILL.md` | TJR 人格 Skill（2026-07-19 蒸餾，765 逐字稿；`references/research/` 存完整調研） |
 | `.claude/skills/emperorbtc-perspective/SKILL.md` | EmperorBTC 人格 Skill（2026-07-19 蒸餾，81 逐字稿；crypto 原生、Volume/Auction Market Theory 路線） |
-| `../.claude/skills/trader-debate/SKILL.md` | Orchestrator skill（辯論協議 runbook） |
+| `.claude/skills/trader-debate/SKILL.md` | Orchestrator skill（辯論協議 runbook） |
 
 相關知識庫頁（vault `知識庫/`）：[[專案總覽]]、[[quant-strategy-dev skill]]、[[多重測試與測試帳本]]、[[倖存者偏差]]

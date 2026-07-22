@@ -64,6 +64,7 @@ class DailyBiasResult(Base):
     price_after_1d = Column(Float, nullable=True)
     price_after_5d = Column(Float, nullable=True)
     price_after_20d = Column(Float, nullable=True)
+    outcomes_correction_note = Column(Text, nullable=True) # 事後校正備註(如地平線計算修正);不影響落地紀律,只記錄「這筆曾被誠實訂正過什麼」
     outcomes_filled_at = Column(String, nullable=True) # 最近一次回填時間
 
 class BacktestRun(Base):

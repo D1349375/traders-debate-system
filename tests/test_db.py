@@ -154,13 +154,28 @@ class TestFillOutcomes:
 
     def test_fills_only_closed_candles(self, session):
         self._setup(session)
-        today = self._dt.date(2026, 1, 4)  # 只有 +1d(01-02)已收
+        today = self._dt.date(2026, 1, 3)  # 判斷日 01-01 自己那根K線(1d地平線目標)01-02收盤,01-03已收
         filled = fill_outcomes(session, lambda a, d: 123.0, today=today)
         assert filled
         from database.schema import DailyBiasResult
         row = session.query(DailyBiasResult).one()
         assert row.price_after_1d == 123.0
         assert row.price_after_5d is None and row.price_after_20d is None
+
+    def test_1d_horizon_targets_judgment_days_own_candle(self, session):
+        """判斷日 D 的 price_after_1d 應該抓 D 自己那根日K的收盤(D+1 00:00 UTC),
+        不是 D+1 那根日K的收盤(D+2 00:00 UTC)——後者會多算一天(2026-07-22 修正的 bug)。"""
+        self._setup(session)  # date="2026-01-01"
+        requested_dates = []
+
+        def fake_fetch(asset, date_str):
+            requested_dates.append(date_str)
+            return 100.0
+
+        fill_outcomes(session, fake_fetch, today=self._dt.date(2026, 2, 1))
+        assert "2026-01-01" in requested_dates  # 1d → D 自己(不是 2026-01-02)
+        assert "2026-01-05" in requested_dates  # 5d → D+4
+        assert "2026-01-20" in requested_dates  # 20d → D+19
 
     def test_fills_all_when_elapsed_and_idempotent(self, session):
         self._setup(session)

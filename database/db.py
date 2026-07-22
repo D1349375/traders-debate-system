@@ -145,7 +145,11 @@ def fill_outcomes(session, fetch_close_fn, today=None):
     """回填事後價格。只填「該日 K 線已收」且目前為空的欄位。
 
     fetch_close_fn(asset, date_str) -> float | None
-    地平線為日曆日(幣圈全年交易),定義見 preregistration。
+    地平線為日曆日(幣圈全年交易),定義見 preregistration:「判斷日 UTC 收盤 → N 日後 UTC 收盤」。
+    price_at_bias 是判斷日 D 開盤附近抓的快照(執行窗口 UTC 00:00-01:00),D 自己這根日K的收盤
+    (發生在 D+1 00:00 UTC)才是真正的「+1 天」參考點,故 Nd 地平線抓的是 (D + N - 1) 那根日K的收盤,
+    不是 (D + N)——後者會多算一天(2026-07-22 修正,見 preregistration §8;修正前已回填的少量舊紀錄
+    已用同一份修正邏輯手動重算,見 outcomes_correction_note)。
     """
     today = today or datetime.datetime.now(datetime.timezone.utc).date()
     horizons = {'price_after_1d': 1, 'price_after_5d': 5, 'price_after_20d': 20}
@@ -156,7 +160,7 @@ def fill_outcomes(session, fetch_close_fn, today=None):
         for col, days in horizons.items():
             if getattr(row, col) is not None:
                 continue
-            target = base + datetime.timedelta(days=days)
+            target = base + datetime.timedelta(days=days - 1)
             if target >= today:  # 該日 K 線尚未收
                 continue
             price = fetch_close_fn(row.asset, target.isoformat())

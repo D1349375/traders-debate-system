@@ -21,6 +21,8 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
 from data.ingestion import build_market_context, fetch_close_on
 from database.db import get_session, upsert_market, record_opinion, finalize, fill_outcomes
 
+# 版本歷史濃縮導覽(v1起完整思路脈絡): 市場摘要協議版本演進紀錄.md ——
+#   任何 PROTOCOL_VERSION 升版,同一次改動內必須同步補一節到那份文件,不是只改這裡的註解。
 # v2-2026-07-19:摘要升級為多時間框架資訊集(週52/日90/4h42+費率+快照,見 市場摘要v2_資訊集設計.md)
 # v3-2026-07-20:新增 1H/15M/5M 日內時間框架 + intraday_scenario 必填欄位(見 preregistration.md §8)
 # v4-2026-07-21:摘要拆為 core(原ICT/TJR,無成交量)/emperorbtc(含成交量+RSI+量能比值)兩變體,

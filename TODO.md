@@ -32,6 +32,8 @@
   - 三變體皆新增「總經行事曆旗標」區塊(NFP週規則計算、2026年FOMC決策週查證自 federalreserve.gov、8月旗標),程式碼純日期規則,誠實揭露不涵蓋CPI/假期行事曆
   - 新增 `tjr` 變體(取代原本ICT/TJR共用的`core`):core內容 + 相關資產(BTC↔ETH)日/4H/1H/15M參考行情(不含成交量、不精算divergence結論)——動機:TJR SKILL.md Step2第4維度明文要查「BTC vs ETH有無SMT背離」,但先前架構下他從未拿到過對方標的的任何資料,三天報告他自己都在講「無ETH對照」。ICT刻意不給同等資料:他語料裡SMT只舉ES/NASDAQ,從未提過BTC/ETH,給了他也未必會用,主動提示又等於替他發明語料沒有的框架連結
   - ICT SKILL.md 修正信心分級表:COT與跨資產SMT在本系統結構性永久缺席,不再因此判定「維度4無數據」而把信心永久鎖死在45-70區間(75-95的頂格區間先前實質上永遠打不開);季節性判斷改依總經行事曆旗標評估,不受COT/SMT缺席影響
+- [x] **事後結果地平線計算修正 off-by-one(2026-07-22)**:`fill_outcomes()` 的 1d/5d/20d 目標日期算錯一天(實際量測1d地平線約42-48小時非24小時),已修正程式碼(`D+N`→`D+N-1`)並回溯校正 4 筆已回填的舊紀錄(新增 `outcomes_correction_note` 欄位存校正說明),補回歸測試鎖定正確目標日期;不改變命中定義本身,詳見 preregistration §8。同批討論並明確排除「touch-based(盤中觸及門檻)命中定義」——查證業界方法論確認 direction accuracy 類指標標準做法就是 close-to-close,touch-based 屬於不同性質的 trading profitability 評估,兩者不相容,維持 close-to-close;查證結果已 ingest 進知識庫 [[quant-strategy-dev skill]] 頁
+- [x] **daily報告新增「ICT/TJR Range與折溢價判讀」表(2026-07-22)**:討論 dry-run 追問挖出 TJR 一次 premium/discount range 選錯的計算錯誤,評估後判定不修 SKILL.md(唯一證據來源是帶引導性問句施壓下的對話,無法排除是提問方式造成而非常態問題;range選擇本身可能是活的框架判斷而非可機械化的規則),改採低成本監控:`templates/report_reference.md`/`.html` 兩份版型新增此表,逐日列出 ICT/TJR 自己在R2 reasoning講的dealing range/equilibrium/premium-discount判定,供使用者主觀複核是否前後一致;純報告呈現層變更,不影響命中定義或聚合邏輯,不觸發protocol_version
   - `database/schema.py` 新增 `context_summary_tjr`;`main.py --variant` 新增 `tjr` 選項;`protocol_version` 升 `v5-2026-07-22`;trader-debate SKILL.md Step1改凍結三份檔案、Step2/3三方路由
   - 63 pytest 全過(9個新增:總經行事曆旗標邊界案例、tjr變體輸出、DB三欄寫入);真實行情smoke test驗證三變體皆正確(tjr變體35.4KB,含ETH日/4H/1H/15M參考資料且不含成交量)
   - preregistration §8 已記錄完整脈絡
@@ -51,6 +53,9 @@
 - [ ] 將「交易員辯論」流程本身封裝成一個 Claude Skill（比照女媧skill的模式：`/交易員辯論` 一鍵跑今日 bias）
 - [ ] 將整個專案發展成完整前後端架構產品（Web 介面 / 儀表板 / 可能對外的產品）——結論是「先驗證再包裝」，Skill化是產品化的必經之路不是繞路
 - [ ] **消息面 compiler agent(2026-07-22 討論,非必須,有隱藏成本)**:討論脈絡見 preregistration §8——三人格 SKILL.md 都提到需要判斷「今天是不是重大消息日」(CPI/FOMC/NFP/Powell講話),已知行事曆部分(FOMC/NFP)已用純日期規則解決(見摘要 v5),但**真正不可預期的即時消息(突發新聞、非排定的 Fed 談話、地緣政治事件)** 目前完全沒有涵蓋,任何人格都拿不到。若要解決,需要開一個獨立的消息面 subagent(可能要用 WebSearch),整理後依資訊分流原則發給各自會用到的人格(例如 EmperorBTC 需要 DXY,這點也跟上面「待接入 DXY」的 TODO 項目相關)。**標記為非必須,原因**:(1) 隱藏成本高——WebSearch 的查詢延遲、token 成本、查到內容的可靠性/來源驗證、要不要在 dry-run 先測過再上線,是一整套新的架構決定,不是小補丁;(2) 已知行事曆(FOMC/NFP)已經解掉多數已被 SKILL.md 明確提及的用例,真正的增量價值只剩「突發消息」這一小塊,價值/成本比不明朗;(3) 沒有證據顯示現有樣本因為缺這塊而判斷失準——目前優先要務仍是 `bias_report_metrics.py` 跟累積樣本,不要在還沒量出問題規模前就動這個更大的工。若未來想啟動,建議先用分歧度診斷腳本類似的手法,看有沒有實際證據支持,而非直接動工。
+- [ ] **交易訊號延伸(2026-07-22 討論,明確定位為專題延伸,非本專題範圍)**:使用者觀察到三份人格 SKILL.md 的決策啟發式本來就含具體風控邏輯(ICT/TJR 單筆風險1-3%、EmperorBTC 部位0.25-1%,皆蒸餾自語料非捏造),認為人格已具備「基礎交易能力」,討論能否延伸成真正的交易訊號產品。**結論:技術上可行,但要當成獨立子專題,不是 DebateSystem 本體的功能擴充**,呼應 README 已有的定位紅線(「confidence 轉部位建議=跨入自動交易訊號,需使用者明確決定」)。
+  - **真正困難的地方**:不是信心加權聚合(現有機械聚合已解決,純量好平均),是**三人格對同一方向給出的進場價/停損價/目標價通常不同**(各自框架算出的關鍵位不會剛好重合)——這是全新的、比方向聚合難的設計問題,現有機制沒有對應的聚合規則。
+  - **建議先後順序**:參照使用者自己 `xs-momentum-bot` 專案的先例——那個機器人是等策略先過 PBO/WF/保留區驗證、**確認有真實 edge 之後**才建執行層,不是驗證前就做。DebateSystem 目前 `bias_report_metrics.py` 未實作、n=0,**此延伸應等 Phase4 產出正的命中率/Brier score 驗證之後才啟動**,現階段不展開細部設計,優先要務仍是樣本累積與 `bias_report_metrics.py`。
 
 ## 已確認可接受的變動
 - [ ] 專案架構/現有程式碼允許後續大幅修改（不受目前 DebateSystem 現有實作綁死）
