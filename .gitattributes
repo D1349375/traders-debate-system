@@ -1,0 +1,11 @@
+# GitHub language statistics: this is a Python project. Generated reports,
+# documentation and the vendored third-party skill should not be counted.
+docs/**            linguist-documentation
+data/reports/**    linguist-documentation
+.agents/**         linguist-vendored
+.claude/**         linguist-documentation
+*.html             linguist-documentation
+
+# Normalize line endings across Windows and POSIX.
+*.py   text eol=lf
+*.md   text eol=lf

@@ -1,14 +1,28 @@
+# Secrets & credentials -- never commit these
+data/cookies.txt
+cookies.txt
+*.cookies
+.env
+.env.*
+*credentials*.json
+*token*.json
+
 # Binary Executables
 ffmpeg.exe
 ffprobe.exe
 *.exe
 
-# Large Context, Transcripts & Market Data Files
+# Third-party corpus: raw YouTube transcripts are not redistributable.
+# Rebuild them locally with data/fetch_transcripts.py -- see
+# docs/en/youtube-scraper-guide.md.
+data/transcripts/
+.claude/skills/*/references/sources/
 datamarket_context*.txt
 *.txt.tmp
-data/market_context/
-data/transcripts/
-data/fetch_transcripts.py
+
+# Note: data/market_context/ is deliberately tracked. Those frozen snapshots
+# are the exact information set each persona saw on each judgment day, and the
+# pre-registration depends on them being auditable after the fact.
 
 # Python & Virtual Environment
 __pycache__/
@@ -24,5 +38,4 @@ htmlcov/
 *.sqlite3
 *.db
 *.log
-.claude/
 .vscode/
