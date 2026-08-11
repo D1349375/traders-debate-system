@@ -3,10 +3,12 @@ ffmpeg.exe
 ffprobe.exe
 *.exe
 
-# Large Context & Market Data Files
+# Large Context, Transcripts & Market Data Files
 datamarket_context*.txt
 *.txt.tmp
 data/market_context/
+data/transcripts/
+data/fetch_transcripts.py
 
 # Python & Virtual Environment
 __pycache__/
