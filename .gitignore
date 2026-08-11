@@ -1,45 +1,26 @@
-# Python
-venv/
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-.Python
-*.egg-info/
-dist/
-build/
-.pytest_cache/
-
-# 環境變數 / API Key
-.env
-*.env
-.envrc
-cookies.txt
-
-# 資料庫（含敏感資料，需要時自行備份）
-database/debate_system.db
-
-# 大型二進位執行檔（ffmpeg）
+# Binary Executables
 ffmpeg.exe
 ffprobe.exe
+*.exe
 
-# ICT 逐字稿（量太大，版權問題）
-data/transcripts/ICT/
+# Large Context & Market Data Files
+datamarket_context*.txt
+*.txt.tmp
+data/market_context/
 
-# TJR 逐字稿的暫存目錄
-data/transcripts/TJR/_tmp/
-data/__pycache__/
+# Python & Virtual Environment
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
 
-# OS 雜檔
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# IDE / 編輯器
+# Databases & IDE
+*.sqlite3
+*.db
+*.log
+.claude/
 .vscode/
-.idea/
-*.swp
-*.swo
-
-# SSH key（絕對不能推）
-*.key
